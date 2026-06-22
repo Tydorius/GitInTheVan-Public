@@ -1,0 +1,271 @@
+<h1 style="font-size:1.8em;border-bottom:2px solid #333;padding-bottom:10px;">Context Control Framework</h1>
+
+<p style="font-size:1.05em;">A two-script token budget management system for GitInTheVan. The <strong>Context Control Template</strong> lets users select their context window size via slash commands, then calculates and broadcasts per-script token allocations. The <strong>Awareness Template</strong> is an example script that reads those allocations and adapts its output detail level accordingly.</p>
+
+<p>Solves the problem of multiple lorebooks competing for limited context space, especially on smaller models like LLM where every token matters.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Table of Contents</h2>
+<ul style="line-height:1.8;">
+    <li><a href="#what-you-get" style="color:#0366d6;">What You Get</a></li>
+    <li><a href="#quick-start" style="color:#0366d6;">Quick Start</a></li>
+    <li><a href="#tier-reference" style="color:#0366d6;">Tier Reference</a></li>
+    <li><a href="#how-context-control-works" style="color:#0366d6;">How Context Control Works</a></li>
+    <li><a href="#command-reference" style="color:#0366d6;">Command Reference</a></li>
+    <li><a href="#how-awareness-works" style="color:#0366d6;">How Awareness Works</a></li>
+    <li><a href="#detail-levels" style="color:#0366d6;">Detail Levels</a></li>
+    <li><a href="#character-card-setup" style="color:#0366d6;">Character Card Setup</a></li>
+    <li><a href="#integration-for-script-creators" style="color:#0366d6;">Integration for Script Creators</a></li>
+    <li><a href="#state-and-encoding" style="color:#0366d6;">State and Encoding</a></li>
+    <li><a href="#troubleshooting" style="color:#0366d6;">Troubleshooting</a></li>
+</ul>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="what-you-get" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">What You Get</h2>
+
+<p><strong>Context Control Template</strong> (master script):</p>
+<ul>
+    <li><code>/maxtokens</code> command with a 5-tier context window selection menu</li>
+    <li><code>/budget</code> command to display current settings</li>
+    <li>Automatic budget division across all active lorebooks</li>
+    <li>Human-readable <code>[CONTEXT BUDGET: ...]</code> block injected into the scenario</li>
+    <li>Zero-width state persistence across messages</li>
+</ul>
+
+<p><strong>Context Control Awareness Template</strong> (example consumer):</p>
+<ul>
+    <li>Reads the budget block and adapts output detail level</li>
+    <li>Three detail tiers: full, summary, bullet</li>
+    <li>Priority-based degrading &mdash; important lore keeps detail longer</li>
+    <li>Serves as a copy-paste reference for making any script context-aware</li>
+</ul>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="quick-start" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Quick Start</h2>
+
+<h3 style="font-size:1.15em;">1. Install Context Control</h3>
+<p>Add <code>Context_Control_Template.js</code> as a lorebook entry. Set it to always activate (keyword <code>*</code> or no filter).</p>
+
+<h3 style="font-size:1.15em;">2. Set Lorebook Count</h3>
+<p>Add this tag to your character card scenario:</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">[Lorebook Count: 5]</pre>
+<p>Replace <code>5</code> with the total number of active lorebooks/scripts in your session.</p>
+
+<h3 style="font-size:1.15em;">3. Select Your Tier</h3>
+<p>Type <code>/maxtokens</code> in chat to see the menu, then respond with 1&ndash;5. Or set directly: <code>/maxtokens 3</code>.</p>
+
+<h3 style="font-size:1.15em;">4. Install Awareness (Optional)</h3>
+<p>Add <code>Context_Control_Awareness_Template.js</code> as a second lorebook entry. It activates on its example keywords (capital, mages guild, etc.) and adapts output to your budget.</p>
+
+<h3 style="font-size:1.15em;">5. Verify</h3>
+<p>Type <code>/budget</code> to see current allocation.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="tier-reference" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Tier Reference</h2>
+
+<table style="border-collapse:collapse;width:100%;margin:12px 0;">
+    <tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Tier</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Context</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Total Budget (10%)</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Per-Script (5 lorebooks)</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Models</th></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;">1</td><td style="border:1px solid #ddd;padding:8px 12px;">8,000</td><td style="border:1px solid #ddd;padding:8px 12px;">800</td><td style="border:1px solid #ddd;padding:8px 12px;">160</td><td style="border:1px solid #ddd;padding:8px 12px;">LLM, WizardLM 13B, Kunoichi 7B</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd;padding:8px 12px;">2</td><td style="border:1px solid #ddd;padding:8px 12px;">16,000</td><td style="border:1px solid #ddd;padding:8px 12px;">1,600</td><td style="border:1px solid #ddd;padding:8px 12px;">320</td><td style="border:1px solid #ddd;padding:8px 12px;">Tiefling 12B, Psyfighter 13B</td></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;">3</td><td style="border:1px solid #ddd;padding:8px 12px;">32,000</td><td style="border:1px solid #ddd;padding:8px 12px;">3,200</td><td style="border:1px solid #ddd;padding:8px 12px;">640</td><td style="border:1px solid #ddd;padding:8px 12px;">Mistral Small 24B, Qwen 2.5/3.5 14B/32B</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd;padding:8px 12px;">4</td><td style="border:1px solid #ddd;padding:8px 12px;">64,000</td><td style="border:1px solid #ddd;padding:8px 12px;">6,400</td><td style="border:1px solid #ddd;padding:8px 12px;">1,280</td><td style="border:1px solid #ddd;padding:8px 12px;">GPT-OSS 20B, SmolLM3-3B</td></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;">5</td><td style="border:1px solid #ddd;padding:8px 12px;">128,000</td><td style="border:1px solid #ddd;padding:8px 12px;">12,800</td><td style="border:1px solid #ddd;padding:8px 12px;">2,560</td><td style="border:1px solid #ddd;padding:8px 12px;">Hermes 3, DeepSeek-R1, Command R+, Llama 4</td></tr>
+</table>
+
+<p>GitInTheVan caps at 128k context, so models supporting larger windows are grouped into Tier 5. The model names are labels for convenience &mdash; the system only cares about the tier number you select.</p>
+
+<p><strong>Budget math:</strong> <code>context_window * 0.10 / lorebook_count</code></p>
+
+<p>At Tier 1 with 5 lorebooks: 160 tokens each. At Tier 5 with 2 lorebooks: 6,400 tokens each.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="how-context-control-works" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">How Context Control Works</h2>
+
+<p>On every AI response, the master script:</p>
+<ol>
+    <li>Scans recent messages for zero-width encoded state (tier + setup flag)</li>
+    <li>Parses the last message for <code>/maxtokens</code> or <code>/budget</code> commands</li>
+    <li>Calculates: <code>context_window * 0.10 / lorebook_count</code></li>
+    <li>Injects <code>[CONTEXT BUDGET: tier=3 context=32000 total=3200 scripts=5 per_script=640]</code> into the scenario</li>
+    <li>Persists tier selection via zero-width characters in a <code>[PERSISTENT MEMORY]</code> block</li>
+</ol>
+
+<h3 style="font-size:1.15em;">Setup Mode</h3>
+<p>When you type <code>/maxtokens</code> without arguments, the scenario is temporarily replaced with a tier selection menu. The AI waits for you to respond with 1&ndash;5. Once you choose, normal mode resumes.</p>
+
+<h3 style="font-size:1.15em;">Normal Mode</h3>
+<p>The budget block is appended to the existing scenario (not replacing it). Notification messages appear as bracketed notes. The zero-width state stores your tier across messages.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="command-reference" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Command Reference</h2>
+
+<table style="border-collapse:collapse;width:100%;margin:12px 0;">
+    <tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Command</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Effect</th></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;"><code>/maxtokens</code></td><td style="border:1px solid #ddd;padding:8px 12px;">Show tier selection menu</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd;padding:8px 12px;"><code>/maxtokens 1</code></td><td style="border:1px solid #ddd;padding:8px 12px;">Set to 8k</td></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;"><code>/maxtokens 3</code></td><td style="border:1px solid #ddd;padding:8px 12px;">Set to 32k</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd;padding:8px 12px;"><code>/maxtokens 5</code></td><td style="border:1px solid #ddd;padding:8px 12px;">Set to 128k+</td></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;"><code>/budget</code></td><td style="border:1px solid #ddd;padding:8px 12px;">Display current tier, context, budget, and per-script allocation</td></tr>
+</table>
+
+<p>Invalid arguments (0, 6, words) trigger the menu instead.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="how-awareness-works" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">How Awareness Works</h2>
+
+<p>The Awareness Template is a reference script that other creators adapt for their own lorebooks. On each execution it:</p>
+<ol>
+    <li><strong>Detect budget</strong> &mdash; parse the <code>[CONTEXT BUDGET: ...]</code> block from scenario, or fall back to decoding zero-width state, or use 160 tokens as a last resort</li>
+    <li><strong>Determine detail ceiling</strong> &mdash; based on per-script budget, set the maximum detail level allowed</li>
+    <li><strong>Activate lore</strong> &mdash; match keywords from the last message against the lore database</li>
+    <li><strong>Allocate detail</strong> &mdash; sort by importance, grant the best detail level that fits within budget</li>
+    <li><strong>Apply</strong> &mdash; append personality and scenario text for each activated entry</li>
+</ol>
+
+<h3 style="font-size:1.15em;">Budget Detection (Three Methods)</h3>
+<ol>
+    <li><strong>Budget block</strong> (primary) &mdash; reads <code>[CONTEXT BUDGET: ...]</code> from scenario, exact per-script allocation</li>
+    <li><strong>Zero-width state</strong> (fallback) &mdash; scans messages for Context Control state, estimates from tier</li>
+    <li><strong>Default</strong> (last resort) &mdash; 160 tokens (Tier 1 / 5 lorebooks), most restrictive</li>
+</ol>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="detail-levels" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Detail Levels</h2>
+
+<table style="border-collapse:collapse;width:100%;margin:12px 0;">
+    <tr style="background:#f0f0f0;"><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Budget</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Max Detail</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Typical Scenario</th><th style="border:1px solid #ddd;padding:8px 12px;text-align:left;">Entry Size</th></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;">300+</td><td style="border:1px solid #ddd;padding:8px 12px;">Full</td><td style="border:1px solid #ddd;padding:8px 12px;">Tier 3+ with few lorebooks</td><td style="border:1px solid #ddd;padding:8px 12px;">~50-80 tokens</td></tr>
+    <tr style="background:#f8f8f8;"><td style="border:1px solid #ddd;padding:8px 12px;">120&ndash;299</td><td style="border:1px solid #ddd;padding:8px 12px;">Summary</td><td style="border:1px solid #ddd;padding:8px 12px;">Tier 2 or 3 with many lorebooks</td><td style="border:1px solid #ddd;padding:8px 12px;">~20-40 tokens</td></tr>
+    <tr><td style="border:1px solid #ddd;padding:8px 12px;">&lt;120</td><td style="border:1px solid #ddd;padding:8px 12px;">Bullet</td><td style="border:1px solid #ddd;padding:8px 12px;">Tier 1 with multiple lorebooks</td><td style="border:1px solid #ddd;padding:8px 12px;">~10-20 tokens</td></tr>
+</table>
+
+<p>Each lore entry has all three versions pre-written. The system picks the best version that fits the budget, degrading lower-importance entries first.</p>
+
+<h3 style="font-size:1.15em;">Per-Entry Allocation</h3>
+<ol>
+    <li>Start with the highest-importance entry</li>
+    <li>Try full detail (or the global ceiling, whichever is lower)</li>
+    <li>If it doesn't fit, try summary, then bullet</li>
+    <li>Subtract used tokens from remaining budget</li>
+    <li>Move to the next entry</li>
+    <li>If budget runs out, remaining entries get bullet</li>
+</ol>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="character-card-setup" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Character Card Setup</h2>
+
+<h3 style="font-size:1.15em;">Required: Lorebook Count Tag</h3>
+<p>Add to your scenario text:</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">[Lorebook Count: 5]</pre>
+<p>Replace <code>5</code> with the total active lorebooks/scripts in the session. If missing, defaults to <code>1</code> (entire budget goes to Context Control itself).</p>
+
+<h3 style="font-size:1.15em;">Lore Database Entries</h3>
+<p>The Awareness Template's lore database uses this structure for each entry:</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">{
+    id: 'unique_id',
+    keywords: ['trigger', 'phrases'],
+    importance: 8.5,
+    full: {
+        personality: ', trait text',
+        scenario: ' Full context text.'
+    },
+    summary: {
+        personality: ', shorter trait',
+        scenario: ' Shorter context.'
+    },
+    bullet: {
+        personality: ', minimal trait',
+        scenario: ' Key: fact1, fact2.'
+    }
+}</pre>
+
+<p>Replace the example entries with your own content. The <code>importance</code> value (float) controls which entries keep full detail when budget is tight.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="integration-for-script-creators" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Integration for Script Creators</h2>
+
+<p>To make your own scripts context-aware, add this parsing function:</p>
+
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">function parseBudgetBlock(scenarioText) {
+    const match = scenarioText.match(
+        /\[CONTEXT\s+BUDGET:\s*tier=(\d+)\s+context=(\d+)\s+total=(\d+)\s+scripts=(\d+)\s+per_script=(\d+)\]/i
+    );
+    if (match) {
+        return {
+            tier: parseInt(match[1]),
+            contextSize: parseInt(match[2]),
+            totalBudget: parseInt(match[3]),
+            scriptCount: parseInt(match[4]),
+            perScript: parseInt(match[5])
+        };
+    }
+    return null;
+}</pre>
+
+<p>Then cap your output:</p>
+
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">const budgetInfo = parseBudgetBlock(context.character.scenario);
+const myBudget = budgetInfo ? budgetInfo.perScript : 160;</pre>
+
+<h3 style="font-size:1.15em;">Three Integration Approaches</h3>
+
+<p><strong>Minimal</strong> &mdash; just cap total output to <code>myBudget</code> tokens. Skip entries that don't fit.</p>
+
+<p><strong>Full</strong> &mdash; provide full/summary/bullet versions of each entry. Let the budget engine pick detail levels. This is what the Awareness Template demonstrates.</p>
+
+<p><strong>Conditional</strong> &mdash; branch on budget thresholds:</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">if (myBudget &lt; 100) { /* minimal */ }
+else if (myBudget &lt; 300) { /* standard */ }
+else { /* full features */ }</pre>
+
+<p><strong>Do not</strong> copy the <code>[PERSISTENT MEMORY]</code> block or write zero-width state. Read only.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="state-and-encoding" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">State and Encoding</h2>
+
+<p>Context Control stores 2 digits as zero-width characters:</p>
+<pre style="background:#1e1e1e;color:#d4d4d4;padding:12px;border-radius:4px;overflow-x:auto;font-size:0.85em;">Digit 1: Tier (1-5)
+Digit 2: Setup Flag (0 = normal, 1 = menu shown)</pre>
+
+<p>Header: <code>\u2060\u2061</code> &nbsp;|&nbsp; Footer: <code>\u2061\u2060</code></p>
+
+<p>This is distinct from the Faction Management Template (which uses <code>\u200D\u200D</code>). Both can run simultaneously without collision.</p>
+
+<p>The <code>[PERSISTENT MEMORY]</code> instruction block tells the AI to reproduce the encoded state in its response, preserving the tier across messages.</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<h2 id="troubleshooting" style="font-size:1.4em;border-bottom:1px solid #ccc;padding-bottom:6px;">Troubleshooting</h2>
+
+<p><strong>Menu doesn't appear on /maxtokens</strong><br>
+Set the script to always activate (keyword <code>*</code> or no filter). Check that it's not gated behind keywords in the lorebook settings.</p>
+
+<p><strong>Tier selection doesn't persist</strong><br>
+The AI must reproduce the zero-width state. The <code>[PERSISTENT MEMORY]</code> block handles this. If the AI consistently fails, the script falls back to Tier 1 each run.</p>
+
+<p><strong>Budget seems wrong</strong><br>
+Verify <code>[Lorebook Count: N]</code> is in the scenario with the correct number. Use <code>/budget</code> to check the calculation.</p>
+
+<p><strong>Awareness always uses bullet points</strong><br>
+Check that Context Control is installed and has a tier set. Use <code>/budget</code> to verify per_script is above 120. If not, increase your tier or reduce lorebook count.</p>
+
+<p><strong>Awareness produces no output</strong><br>
+The example lore database is placeholder content. Replace the entries with your own keywords and text.</p>
+
+<p><strong>State collision with other scripts</strong><br>
+This framework uses <code>\u2060\u2061</code> header/footer. It does not conflict with the Faction Management Template (<code>\u200D\u200D</code>).</p>
+
+<hr style="border:none;border-top:1px solid #ddd;margin:24px 0;">
+
+<p style="color:#666;font-size:0.9em;">Part of the JanitorScripts template collection. Files: Context_Control_Template.js, Context_Control_Awareness_Template.js, and individual READMEs for each.</p>

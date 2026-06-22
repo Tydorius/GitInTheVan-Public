@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Control Awareness Template</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fafafa;
+}
+h1 { font-size: 1.8em; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 30px; }
+h2 { font-size: 1.4em; color: #2a2a2a; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-top: 28px; }
+h3 { font-size: 1.15em; color: #333; margin-top: 20px; }
+p { margin: 10px 0; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+    background: #eef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #f0f0f0; font-weight: 600; }
+tr:nth-child(even) { background: #f8f8f8; }
+strong { font-weight: 600; }
+em { color: #555; }
+hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+.intro { font-size: 1.05em; color: #333; margin: 16px 0; }
+.toc { background: #f0f0f0; padding: 16px 24px; border-radius: 6px; margin: 16px 0; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 6px 0; }
+.warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.note { background: #e7f3ff; border-left: 4px solid #0366d6; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>Context Control Awareness Template</h1>
+
+<p class="intro">A companion script for the Context Control Template that demonstrates how any lorebook can read the injected token budget and adapt its output to stay within the per-script allocation.</p>
+
+<p>This is not a standalone lorebook. It is a template and reference implementation showing the exact patterns needed to make any script context-aware.</p>
+
+<div class="toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#budget-detection">Budget Detection</a></li>
+    <li><a href="#detail-level-selection">Detail Level Selection</a></li>
+    <li><a href="#integration-patterns">Integration Patterns</a></li>
+    <li><a href="#lore-database-structure">Lore Database Structure</a></li>
+    <li><a href="#adding-to-existing-scripts">Adding to Existing Scripts</a></li>
+    <li><a href="#configuration">Configuration</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</div>
+
+<h2 id="overview">Overview</h2>
+
+<p>This template demonstrates:</p>
+
+<ul>
+    <li><strong>Budget Detection</strong>: Two-method approach to finding the per-script token allocation</li>
+    <li><strong>Detail Level Adaptation</strong>: Three detail tiers (full, summary, bullet) that scale based on available tokens</li>
+    <li><strong>Priority-Based Degrading</strong>: Higher-importance entries keep full detail longer when budget is tight</li>
+    <li><strong>Conservative Fallbacks</strong>: Default budget of 160 tokens when Context Control is not detected</li>
+</ul>
+
+<p>It serves as both a working example and a copy-paste reference for adding context awareness to any existing script.</p>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3>Step 1: Install Context Control</h3>
+
+<p>The Awareness template requires the Context Control Template to be running in the same session. Install it first.</p>
+
+<h3>Step 2: Install This Template</h3>
+
+<p>Add <code>Context_Control_Awareness_Template.js</code> as a lorebook entry. It activates based on keywords from its lore database.</p>
+
+<h3>Step 3: Set Up Context Control</h3>
+
+<p>Use <code>/maxtokens</code> in chat to select your context tier. The Context Control script will inject the budget into the scenario.</p>
+
+<h3>Step 4: Test</h3>
+
+<p>Type a message containing one of the example keywords (e.g., "capital", "mages guild", "duke ashford"). The awareness script will activate and select the appropriate detail level based on your budget.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<p>The script follows this flow on every execution:</p>
+
+<ol>
+    <li><strong>Detect budget</strong>: Parse <code>[CONTEXT BUDGET: ...]</code> from scenario, or fall back to zero-width state</li>
+    <li><strong>Determine detail ceiling</strong>: Based on budget, set the maximum detail level allowed</li>
+    <li><strong>Activate lore</strong>: Match keywords from the last message against the lore database</li>
+    <li><strong>Budget allocation</strong>: Starting with the highest-importance entry, grant the best detail level that fits</li>
+    <li><strong>Apply</strong>: Append personality and scenario text for each activated entry</li>
+</ol>
+
+<h2 id="budget-detection">Budget Detection</h2>
+
+<p>The script uses a two-method approach to find the per-script token budget.</p>
+
+<h3>Method 1: Budget Block (Primary)</h3>
+
+<p>Reads the <code>[CONTEXT BUDGET: ...]</code> block injected by the Context Control Template:</p>
+
+<pre><code>function parseBudgetBlock(scenarioText) {
+    const match = scenarioText.match(
+        /\[CONTEXT\s+BUDGET:\s*tier=(\d+)\s+context=(\d+)\s+total=(\d+)\s+scripts=(\d+)\s+per_script=(\d+)\]/i
+    );
+    if (match) {
+        return {
+            tier: parseInt(match[1]),
+            contextSize: parseInt(match[2]),
+            totalBudget: parseInt(match[3]),
+            scriptCount: parseInt(match[4]),
+            perScript: parseInt(match[5])
+        };
+    }
+    return null;
+}</code></pre>
+
+<p>This is the preferred method because it provides the exact per-script allocation calculated by Context Control, accounting for the actual lorebook count.</p>
+
+<h3>Method 2: Zero-Width State (Fallback)</h3>
+
+<p>If the budget block is not found in the scenario, the script scans recent messages for the Context Control zero-width state and estimates the budget from the tier alone:</p>
+
+<pre><code>const tierContexts = { 1: 8000, 2: 16000, 3: 32000, 4: 64000, 5: 128000 };
+perScriptBudget = Math.floor(tierContexts[tier] * 0.10 / 1);</code></pre>
+
+<p>This fallback assumes only 1 lorebook (no division), which is conservative.</p>
+
+<h3>Method 3: Default (Last Resort)</h3>
+
+<p>If neither method finds a budget, the script uses <code>DEFAULT_BUDGET = 160</code> tokens, which corresponds to Tier 1 with 5 lorebooks. This is the most restrictive setting, ensuring the script never produces excessive output.</p>
+
+<h2 id="detail-level-selection">Detail Level Selection</h2>
+
+<p>The script defines two thresholds:</p>
+
+<pre><code>const FULL_THRESHOLD = 300;    // Need 300+ tokens for full detail
+const SUMMARY_THRESHOLD = 120; // Need 120+ tokens for summary detail</code></pre>
+
+<table>
+    <tr><th>Budget</th><th>Max Detail Level</th><th>Typical Scenario</th></tr>
+    <tr><td>300+</td><td>Full</td><td>Tier 3+ with few lorebooks</td></tr>
+    <tr><td>120-299</td><td>Summary</td><td>Tier 2 or Tier 3 with many lorebooks</td></tr>
+    <tr><td>&lt;120</td><td>Bullet</td><td>Tier 1 with multiple lorebooks</td></tr>
+</table>
+
+<h3>Per-Entry Allocation</h3>
+
+<p>Within a single execution, the script sorts activated entries by importance and allocates detail levels greedily:</p>
+
+<ol>
+    <li>Start with the highest-importance entry</li>
+    <li>Try to grant <code>full</code> detail (or the global ceiling, whichever is lower)</li>
+    <li>If it doesn't fit, try <code>summary</code>, then <code>bullet</code></li>
+    <li>Subtract used tokens from remaining budget</li>
+    <li>Move to the next entry</li>
+    <li>If budget runs out, force remaining entries to <code>bullet</code></li>
+</ol>
+
+<h2 id="integration-patterns">Integration Patterns</h2>
+
+<h3>Minimal Integration (Add to Any Script)</h3>
+
+<p>To add context awareness to an existing script, copy the budget parsing function and add:</p>
+
+<pre><code>const budgetInfo = parseBudgetBlock(context.character.scenario);
+const myBudget = budgetInfo ? budgetInfo.perScript : 160;
+let usedTokens = 0;
+
+yourEntries.forEach(entry => {
+    const entryTokens = estimateTokens(entry.content);
+    if (usedTokens + entryTokens <= myBudget) {
+        context.character.scenario += entry.content;
+        usedTokens += entryTokens;
+    }
+});</code></pre>
+
+<h3>Full Integration (Three Detail Levels)</h3>
+
+<p>Copy the complete Sections 5-7 pattern:</p>
+
+<ol>
+    <li>Define your lore database with <code>full</code>, <code>summary</code>, and <code>bullet</code> versions</li>
+    <li>Activate entries by keyword matching</li>
+    <li>Sort by importance</li>
+    <li>Allocate detail levels within budget</li>
+</ol>
+
+<h3>Selective Integration (Conditional Output)</h3>
+
+<p>For scripts that don't need multiple detail levels but should respect the budget:</p>
+
+<pre><code>const budgetInfo = parseBudgetBlock(context.character.scenario);
+const myBudget = budgetInfo ? budgetInfo.perScript : 160;
+
+if (myBudget &lt; 100) {
+    // Minimal output only
+} else if (myBudget &lt; 300) {
+    // Standard output
+} else {
+    // Full output with all features
+}</code></pre>
+
+<h2 id="lore-database-structure">Lore Database Structure</h2>
+
+<p>Each entry follows this structure:</p>
+
+<pre><code>{
+    id: 'unique_identifier',           // For debugging
+    keywords: ['trigger', 'phrases'],  // Case-insensitive matching
+    importance: 8.5,                   // Float for priority sorting
+    full: {                            // For budgets &gt;= 300 tokens
+        personality: ', trait text',
+        scenario: ' World context text.'
+    },
+    summary: {                         // For budgets &gt;= 120 tokens
+        personality: ', shorter trait',
+        scenario: ' Shorter context.'
+    },
+    bullet: {                          // For budgets &lt; 120 tokens
+        personality: ', minimal trait',
+        scenario: ' Key: fact1, fact2, fact3.'
+    }
+}</code></pre>
+
+<h3>Writing Good Detail Levels</h3>
+
+<ul>
+    <li><strong>Full</strong> (~50-80 tokens per entry): Complete descriptions with history, relationships, and nuance</li>
+    <li><strong>Summary</strong> (~20-40 tokens per entry): Core facts with one or two key details</li>
+    <li><strong>Bullet</strong> (~10-20 tokens per entry): Essential identifiers only. Name, role, one key attribute</li>
+</ul>
+
+<h2 id="adding-to-existing-scripts">Adding to Existing Scripts</h2>
+
+<h3>Step-by-Step for Script Creators</h3>
+
+<ol>
+    <li>Copy the <code>parseBudgetBlock()</code> function from Section 4</li>
+    <li>Call it at the start of your script: <code>const budget = parseBudgetBlock(context.character.scenario);</code></li>
+    <li>Use <code>budget.perScript</code> (or a fallback value) to cap your output</li>
+    <li>Add the zero-width fallback if you want redundancy</li>
+    <li>Provide multiple detail levels for your content (recommended)</li>
+    <li>Test at each tier to verify output fits</li>
+</ol>
+
+<h3>What Not to Copy</h3>
+
+<ul>
+    <li>Do not copy the <code>CC_HEADER</code>, <code>CC_FOOTER</code>, or encoding functions unless you are also reading zero-width state</li>
+    <li>Do not copy the <code>[PERSISTENT MEMORY]</code> block generation; that belongs only to the Context Control script</li>
+    <li>Do not write your own zero-width state; read only</li>
+</ul>
+
+<h2 id="configuration">Configuration</h2>
+
+<h3>Thresholds</h3>
+
+<p>Adjust these if your entries are larger or smaller than the examples:</p>
+
+<pre><code>const FULL_THRESHOLD = 300;    // Per-entry budget needed for full detail
+const SUMMARY_THRESHOLD = 120; // Per-entry budget needed for summary detail</code></pre>
+
+<h3>Fallback Budget</h3>
+
+<pre><code>const DEFAULT_BUDGET = 160;    // Conservative default</code></pre>
+
+<p>This should match the worst-case scenario for your typical user. 160 tokens is Tier 1 with 5 lorebooks.</p>
+
+<h3>Search Depth</h3>
+
+<pre><code>const SEARCH_DEPTH = 20;       // Messages to scan for zero-width state</code></pre>
+
+<p>Increase this if the Context Control state is older than 20 messages and getting lost.</p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<p><strong>Script always uses bullet points</strong></p>
+<ul>
+    <li>Check that Context Control is installed and has a tier set</li>
+    <li>Use <code>/budget</code> to verify the per-script allocation</li>
+    <li>If <code>per_script</code> is below 120, the script correctly uses bullets</li>
+    <li>Increase your tier or reduce your lorebook count</li>
+</ul>
+
+<p><strong>Script produces no output</strong></p>
+<ul>
+    <li>The lore database entries are examples; replace them with your own content</li>
+    <li>Check that keywords in the database match what appears in the chat</li>
+    <li>Verify the script is activating (check lorebook keyword settings)</li>
+</ul>
+
+<p><strong>Budget detection returns null</strong></p>
+<ul>
+    <li>Ensure Context Control ran before this script in the execution order</li>
+    <li>Verify the <code>[CONTEXT BUDGET: ...]</code> block appears in the scenario</li>
+    <li>The fallback should still provide a working budget from zero-width state</li>
+</ul>
+
+<p><strong>Zero-width fallback doesn't work</strong></p>
+<ul>
+    <li>Check that the AI is reproducing the <code>[PERSISTENT MEMORY]</code> block in responses</li>
+    <li>Increase <code>SEARCH_DEPTH</code> if the state is more than 20 messages old</li>
+    <li>Verify no other script is interfering with the state characters</li>
+</ul>
+
+<div class="footer">
+    <p>Part of the JanitorScripts template collection. Companion to the Context Control Template.</p>
+</div>
+
+</body>
+</html>

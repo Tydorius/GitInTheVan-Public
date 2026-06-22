@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Advanced Faction Management and Diplomacy Template</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fafafa;
+}
+h1 { font-size: 1.8em; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 30px; }
+h2 { font-size: 1.4em; color: #2a2a2a; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-top: 28px; }
+h3 { font-size: 1.15em; color: #333; margin-top: 20px; }
+p { margin: 10px 0; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+    background: #eef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #f0f0f0; font-weight: 600; }
+tr:nth-child(even) { background: #f8f8f8; }
+strong { font-weight: 600; }
+em { color: #555; }
+hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+.intro { font-size: 1.05em; color: #333; margin: 16px 0; }
+.toc { background: #f0f0f0; padding: 16px 24px; border-radius: 6px; margin: 16px 0; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 6px 0; }
+.warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.note { background: #e7f3ff; border-left: 4px solid #0366d6; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>Advanced Faction Management and Diplomacy Template</h1>
+
+<p class="intro">A two-mode faction management system for GitInTheVan Scripts that provides invisible stat tracking via zero-width characters during normal roleplay, and a full management interface with slash commands for construction, recruitment, research, diplomacy, and operations when activated.</p>
+
+<p>Designed for any scenario involving faction governance: kingdoms, merchant guilds, mercenary companies, criminal organizations, political parties, or corporate entities.</p>
+
+<div class="toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#state-schema">State Schema</a></li>
+    <li><a href="#feature-toggles">Feature Toggles</a></li>
+    <li><a href="#command-reference">Command Reference</a></li>
+    <li><a href="#data-tables">Data Tables</a></li>
+    <li><a href="#character-card-setup">Character Card Setup</a></li>
+    <li><a href="#for-non-programmers">For Non-Programmers: AI-Assisted Setup</a></li>
+    <li><a href="#safe-component-removal">Safe Component Removal</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</div>
+
+<h2 id="overview">Overview</h2>
+
+<p>This template includes:</p>
+<ul>
+    <li><strong>Zero-Width State Persistence</strong> &mdash; All game state encoded as invisible Unicode characters</li>
+    <li><strong>Two-Mode Operation</strong> &mdash; Normal roleplay with invisible tracking, plus <code>/faction</code> management mode</li>
+    <li><strong>Project System</strong> &mdash; 20 buildable structures with prerequisites, upgrades, and passive generation</li>
+    <li><strong>Scalable Project Slots</strong> &mdash; 2 slots base, upgradeable to 4 then 6</li>
+    <li><strong>Diplomacy</strong> &mdash; Stance and treaty tracking for up to 6 rival factions</li>
+    <li><strong>Resource Management</strong> &mdash; 5 resource types with passive generation and daily consumption</li>
+    <li><strong>Population Tracking</strong> &mdash; 3 personnel types plus morale, with recruitment costs</li>
+    <li><strong>Stat Keyword Detection</strong> &mdash; Normal-mode keywords automatically adjust stats</li>
+    <li><strong>Day-Based Timeline Events</strong> &mdash; Story beats triggered by time progression</li>
+    <li><strong>Lore Activation Engine</strong> &mdash; Keyword-triggered lore with cascading triggers</li>
+    <li><strong>Stat Display Toggle</strong> &mdash; <code>/showstats</code> and <code>/hidestats</code> for optional visible output</li>
+</ul>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3>Step 1: Customize Data Tables</h3>
+<p>Open <code>Advanced_Faction_Management_Template.js</code> and modify these tables:</p>
+<ol>
+    <li><strong>STAT_NAMES</strong> &mdash; Rename the 7 stats to match your setting</li>
+    <li><strong>RESOURCE_NAMES</strong> &mdash; Rename the 5 resource types</li>
+    <li><strong>POP_NAMES</strong> &mdash; Rename the 3 personnel types (index 3 is always morale/loyalty)</li>
+    <li><strong>PROJECT_TABLE</strong> &mdash; Replace the 20 example buildings with your own</li>
+    <li><strong>NATION_TABLE</strong> &mdash; Replace the 6 example factions with your rivals</li>
+    <li><strong>LORE_ENTRIES</strong> &mdash; Replace example lore with your world&rsquo;s content</li>
+    <li><strong>TIMELINE_EVENTS</strong> &mdash; Replace example events with your story beats</li>
+    <li><strong>DEFAULT_STATE</strong> &mdash; Adjust starting values</li>
+</ol>
+
+<h3>Step 2: Update Starting Values</h3>
+<p>The <code>DEFAULT_STATE</code> object encodes starting values as digit strings:</p>
+<pre><code>const DEFAULT_STATE = {
+    [CATEGORY.MODE_DAY]:   '000012',       // Mode(0) Display(0) Day(001) Slots(2)
+    [CATEGORY.STATS]:      '10251505100502', // 7 stats x 2 digits
+    [CATEGORY.RESOURCES]:  '1520101525',    // 5 resources x 2 digits
+    [CATEGORY.POPULATION]: '10200550',      // 4 values x 2 digits
+    [CATEGORY.PROJECTS]:   '000000000000000000000000000000000000',
+    [CATEGORY.DIPLOMACY]:  '111100000000',
+    [CATEGORY.INFRA]:      '0000000'
+};</code></pre>
+
+<h3>Step 3: Customize Keywords</h3>
+<p>Update these keyword tables to match your setting&rsquo;s vocabulary:</p>
+<ul>
+    <li><strong>STAT_KEYWORDS</strong> &mdash; Phrases that adjust stats during normal roleplay</li>
+    <li><strong>TIME_KEYWORDS</strong> &mdash; Phrases that advance the day counter</li>
+    <li><strong>BUILD_ALIASES</strong> &mdash; Shortcuts players can type for <code>/build</code> commands</li>
+    <li><strong>RECRUIT_COSTS</strong>, <strong>RESEARCH_ACTIONS</strong>, <strong>MILITARY_ACTIONS</strong>, <strong>MANAGE_ACTIONS</strong>, <strong>DIPLOMACY_ACTIONS</strong></li>
+</ul>
+
+<h3>Step 4: Configure Character Card</h3>
+<p>See the <a href="#character-card-setup">Character Card Setup</a> section.</p>
+
+<h3>Step 5: Test</h3>
+<p>Set <code>DEBUG_MODE: true</code> in the <code>FEATURES</code> object and test basic functionality.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<h3>Zero-Width State Persistence</h3>
+<p>The template encodes all game state as decimal digits, then converts each digit to a zero-width Unicode character. This invisible string is injected into the scenario and the LLM reproduces it at the start and end of every response.</p>
+<ol>
+    <li>Build a pipe-delimited string of category IDs + data digits</li>
+    <li>Convert each digit to its zero-width character equivalent</li>
+    <li>Wrap with header/footer markers</li>
+    <li>Inject into <code>context.character.scenario</code> with reproduction instructions</li>
+    <li>On next execution, scan recent messages backward for the state block</li>
+    <li>Decode zero-width characters back to digits and parse into state</li>
+</ol>
+<p>Players never see any numbers or tracking data.</p>
+
+<h3>Two-Mode System</h3>
+<p><strong>Normal Mode</strong> (default): Silent background tracking. Detects keywords to adjust stats, auto-start projects, and advance days. Lore entries activate based on keywords. The AI roleplays normally.</p>
+<p><strong>Faction Management Mode</strong> (<code>/faction</code>): Replaces scenario and personality with a management interface. Shows stats, resources, personnel, projects, and diplomacy. The AI processes slash commands. Type <code>/exit</code> to return to roleplay.</p>
+
+<h3>Day Advancement</h3>
+<p>Days advance through time keywords in normal mode or <code>/endturn</code> in faction mode. Each day tick:</p>
+<ol>
+    <li>Advances all active projects</li>
+    <li>Applies effects from completed projects</li>
+    <li>Sets infrastructure bits for completed buildings</li>
+    <li>Generates passive resources from infrastructure</li>
+    <li>Consumes provisions based on personnel counts</li>
+</ol>
+
+<h2 id="state-schema">State Schema</h2>
+
+<p>Each category uses a 2-digit prefix followed by fixed-width data, pipe-delimited.</p>
+
+<table>
+<tr><th>Category</th><th>ID</th><th>Structure</th><th>Width</th></tr>
+<tr><td>Mode/Day</td><td>01</td><td>Mode(1) + StatsDisplay(1) + Day(3) + MaxSlots(1)</td><td>6 digits</td></tr>
+<tr><td>Stats</td><td>02</td><td>7 stats &times; 2 digits each</td><td>14 digits</td></tr>
+<tr><td>Resources</td><td>03</td><td>5 resources &times; 2 digits each</td><td>10 digits</td></tr>
+<tr><td>Population</td><td>04</td><td>4 values &times; 2 digits each</td><td>8 digits</td></tr>
+<tr><td>Projects</td><td>05</td><td>6 slots &times; (TypeID(2) + Elapsed(2) + Total(2))</td><td>36 digits</td></tr>
+<tr><td>Diplomacy</td><td>06</td><td>6 factions &times; (Stance(1) + Treaty(1))</td><td>12 digits</td></tr>
+<tr><td>Infrastructure</td><td>07</td><td>Building bitmask</td><td>7 decimal digits</td></tr>
+</table>
+
+<p><strong>Total encoded state</strong>: ~93 decimal digits</p>
+
+<h3>Diplomacy Stance Values</h3>
+<table>
+<tr><th>Value</th><th>Stance</th></tr>
+<tr><td>0</td><td>Unknown</td></tr>
+<tr><td>1</td><td>Hostile</td></tr>
+<tr><td>2</td><td>Unfriendly</td></tr>
+<tr><td>3</td><td>Neutral</td></tr>
+<tr><td>4</td><td>Cautious</td></tr>
+<tr><td>5</td><td>Friendly</td></tr>
+<tr><td>6</td><td>Allied</td></tr>
+<tr><td>7</td><td>Vassal</td></tr>
+</table>
+
+<h3>Diplomacy Treaty Values</h3>
+<table>
+<tr><th>Value</th><th>Treaty</th></tr>
+<tr><td>0</td><td>None</td></tr>
+<tr><td>1</td><td>Non-Aggression Pact</td></tr>
+<tr><td>2</td><td>Trade Agreement</td></tr>
+<tr><td>3</td><td>Military Alliance</td></tr>
+<tr><td>4</td><td>Vassalage</td></tr>
+<tr><td>5</td><td>Secret Pact</td></tr>
+</table>
+
+<h2 id="feature-toggles">Feature Toggles</h2>
+
+<p>Control which systems are active via the <code>FEATURES</code> object:</p>
+
+<pre><code>const FEATURES = {
+    LORE_ENGINE: true,          // Keyword-triggered lore activation
+    STAT_KEYWORDS: true,        // Detect stat-changing keywords in normal mode
+    TIME_TRACKING: true,        // Day advancement detection
+    TIMELINE_EVENTS: true,      // Day-based scripted events
+    PROJECT_SYSTEM: true,       // Construction/upgrade projects
+    DIPLOMACY_SYSTEM: true,     // Faction diplomacy tracking
+    RESOURCE_SYSTEM: true,      // Resource generation and consumption
+    DEBUG_MODE: false           // Diagnostic output
+};</code></pre>
+
+<p>Set any feature to <code>false</code> to disable it without removing code.</p>
+
+<h2 id="command-reference">Command Reference</h2>
+
+<p>All commands work only in faction management mode (after typing <code>/faction</code>).</p>
+
+<h3>Mode and Display</h3>
+<table>
+<tr><th>Command</th><th>Effect</th></tr>
+<tr><td><code>/faction</code></td><td>Enter faction management mode</td></tr>
+<tr><td><code>/exit</code></td><td>Return to normal roleplay</td></tr>
+<tr><td><code>/showstats</code></td><td>Show basic stat display in normal mode</td></tr>
+<tr><td><code>/showstats verbose</code></td><td>Show detailed stat display in normal mode</td></tr>
+<tr><td><code>/hidestats</code></td><td>Hide stat display in normal mode</td></tr>
+<tr><td><code>/overview</code></td><td>Display current faction status</td></tr>
+<tr><td><code>/help</code></td><td>List all available commands</td></tr>
+<tr><td><code>/endturn</code></td><td>Advance one day</td></tr>
+</table>
+
+<h3>Construction</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/build [project]</code></td><td><code>/build barracks watch</code></td><td>Start construction (multiple allowed)</td></tr>
+<tr><td><code>/upgrade [building]</code></td><td><code>/upgrade workshop</code></td><td>Upgrade an existing building</td></tr>
+</table>
+
+<h3>Recruitment</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/train [count] [type]</code></td><td><code>/train 5 soldiers</code></td><td>Recruit personnel</td></tr>
+</table>
+<p>Types: <code>soldiers</code>, <code>operatives</code>, <code>scholars</code> (plus aliases: <code>military</code>, <code>troops</code>, <code>workers</code>, <code>researchers</code>)</p>
+
+<h3>Research</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/research [field]</code></td><td><code>/research technology</code></td><td>Spend funds to increase a stat</td></tr>
+</table>
+<p>Fields: <code>knowledge</code>, <code>technology</code>, <code>security</code>, <code>force</code> (plus aliases: <code>arcane</code>, <code>magic</code>, <code>tech</code>, <code>defense</code>, <code>military</code>)</p>
+
+<h3>Diplomacy</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/diplomacy [faction] [action]</code></td><td><code>/diplomacy northern envoy</code></td><td>Conduct diplomacy</td></tr>
+</table>
+<p>Actions: <code>envoy</code>, <code>threaten</code>, <code>treaty</code>, <code>trade</code>, <code>alliance</code>, <code>secret pact</code></p>
+
+<h3>Espionage and Military</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/espionage [faction]</code></td><td><code>/espionage eastern</code></td><td>Spy on a faction (5 Funds)</td></tr>
+<tr><td><code>/military [action]</code></td><td><code>/military train</code></td><td>Military operations</td></tr>
+<tr><td><code>/military raid [faction]</code></td><td><code>/military raid mountain</code></td><td>Hostile action against a faction</td></tr>
+</table>
+<p>Military actions: <code>train</code> (+Force), <code>patrol</code> (+Security), <code>raid</code> (+Force, worsens relations)</p>
+
+<h3>Management</h3>
+<table>
+<tr><th>Command</th><th>Example</th><th>Effect</th></tr>
+<tr><td><code>/manage [action]</code></td><td><code>/manage feast</code></td><td>Internal management</td></tr>
+</table>
+<p>Actions: <code>tax</code> (+Funds, -Morale), <code>ration</code> (+Provisions, -Morale), <code>feast</code> (-Funds/Provisions, +Morale/Reputation), <code>festival</code> (larger feast)</p>
+
+<h2 id="data-tables">Data Tables</h2>
+
+<h3>Project Table</h3>
+<table>
+<tr><th>Field</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>string</td><td>2-digit unique identifier</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Display name</td></tr>
+<tr><td><code>duration</code></td><td>number</td><td>Days to complete</td></tr>
+<tr><td><code>cost</code></td><td>object</td><td>Resource cost keys: <code>{f, m, a, s, p}</code></td></tr>
+<tr><td><code>requires</code></td><td>number/null</td><td>Bit index of prerequisite (0-based)</td></tr>
+<tr><td><code>statEffect</code></td><td>object</td><td>Stats adjusted on completion: <code>{StatName: delta}</code></td></tr>
+<tr><td><code>passiveGen</code></td><td>object</td><td>Daily resource generation: <code>{ResourceName: amount}</code></td></tr>
+<tr><td><code>special</code></td><td>string/null</td><td><code>'slots4'</code> or <code>'slots6'</code> to increase project slots</td></tr>
+<tr><td><code>popEffect</code></td><td>object</td><td>Population added: <code>{PopName: count}</code></td></tr>
+</table>
+
+<h3>Cost Key Reference</h3>
+<table>
+<tr><th>Key</th><th>Resource</th></tr>
+<tr><td><code>f</code></td><td>Funds</td></tr>
+<tr><td><code>m</code></td><td>Materials</td></tr>
+<tr><td><code>a</code></td><td>Arms</td></tr>
+<tr><td><code>s</code></td><td>Supplies</td></tr>
+<tr><td><code>p</code></td><td>Provisions</td></tr>
+</table>
+
+<h3>Faction Table</h3>
+<table>
+<tr><th>Field</th><th>Type</th><th>Description</th></tr>
+<tr><td><code>id</code></td><td>number</td><td>0-5 array index</td></tr>
+<tr><td><code>name</code></td><td>string</td><td>Full faction name</td></tr>
+<tr><td><code>aliases</code></td><td>array</td><td>Strings players might type to reference this faction</td></tr>
+</table>
+
+<h3>Lore Entry Structure</h3>
+<pre><code>{
+    keywords: ['trigger phrases'],
+    priority: 10,                // 0-11, higher activates first
+    minMessages: 0,              // Minimum chat length
+    category: 'unique_id',       // Organization identifier
+    personality: ', trait',      // Added to personality
+    scenario: ' context text',   // Added to scenario
+    triggers: ['keywords'],      // Cascading activation
+    filters: {                   // Conditional activation
+        requiresAny: ['word'],
+        requiresAll: ['word1', 'word2'],
+        notWith: ['exclusion']
+    },
+    probability: 0.7             // Random chance (optional)
+}</code></pre>
+
+<h3>Timeline Event Structure</h3>
+<pre><code>{
+    day: 7,                      // Which day this triggers
+    id: 'unique_event_id',       // Organization identifier
+    text: ' Scenario text',      // Added to scenario
+    personality: ', trait',      // Added to personality (optional)
+    minMessages: 2               // Minimum chat length (optional)
+}</code></pre>
+
+<h2 id="character-card-setup">Character Card Setup</h2>
+
+<p>Your character card needs to instruct the AI to reproduce the hidden state and respond to the management interface.</p>
+
+<h3>Personality Section</h3>
+<pre><code>{{char}} operates within a faction management system that tracks multiple statistics invisibly.
+
+**Behavior Rules:**
+- {{char}} MUST reproduce the hidden characters from [PERSISTENT MEMORY] at the very start and end of every response
+- {{char}} MUST NOT mention, describe, or acknowledge the hidden characters or the tracking system
+- {{char}} considers stat values when making narrative decisions
+- {{char}} treats displayed stat values as authoritative and does not contradict them</code></pre>
+
+<h3>Scenario Section</h3>
+<pre><code>{{user}} has recently established their faction and is beginning to build power. The surrounding region contains multiple rival groups, each with their own agendas.
+
+**Management System:**
+- Type /faction to enter management mode
+- Type /exit to return to normal roleplay
+- The system tracks resources, personnel, and relationships automatically
+- Building projects advance with each day that passes</code></pre>
+
+<div class="note">
+<strong>Important:</strong> This template does not use <code>getStat()</code> regex parsing. Stats are tracked internally via zero-width encoding. Your character card does not need a status block format. The template injects stat displays directly when <code>/showstats</code> is active.
+</div>
+
+<h2 id="for-non-programmers">For Non-Programmers: AI-Assisted Setup</h2>
+
+<p>Use AI assistants to populate this template. Paste the template file along with one of these prompts.</p>
+
+<h3>Basic Setup Prompt</h3>
+<pre><code>I have a GitInTheVan faction management template (attached: Advanced_Faction_Management_Template.js). I want you to populate it with my scenario's content.
+
+[PASTE YOUR WORLD/SCENARIO INFORMATION HERE]
+
+Please:
+1. Replace STAT_NAMES with 7 stats appropriate for my setting
+2. Replace RESOURCE_NAMES with 5 resource types that fit my setting
+3. Replace POP_NAMES with 3 personnel types (index 3 must stay as morale/loyalty)
+4. Replace all 20 entries in PROJECT_TABLE with buildings appropriate for my setting
+5. Replace NATION_TABLE with my scenario's rival factions (up to 6)
+6. Replace LORE_ENTRIES with my world's lore
+7. Replace TIMELINE_EVENTS with my story's key events
+8. Update BUILD_ALIASES to match the new project names
+9. Update STAT_KEYWORDS with keywords appropriate for my setting
+10. Update DEFAULT_STATE starting values
+11. Do NOT modify Sections 2, 6, 7, 8, 9, 10, 12, 13, or 14 (the engine code)</code></pre>
+
+<h3>Customization Prompt</h3>
+<pre><code>I want to adapt the Advanced Faction Management template for a [SETTING TYPE] scenario.
+
+Please:
+1. Rename all stats, resources, and personnel to fit the setting
+2. Create 20 buildings/projects appropriate for this setting
+3. Design 6 rival factions with appropriate names
+4. Write lore entries for key locations, organizations, and characters
+5. Set up timeline events for a [DURATION]-month campaign
+6. Adjust all keyword tables for this setting's vocabulary
+7. Set appropriate starting values</code></pre>
+
+<h3>Debugging Prompt</h3>
+<pre><code>My faction management template isn't working. Here's the file:
+
+[ATTACH YOUR FILE]
+
+Issues: [DESCRIBE PROBLEMS]
+
+Please:
+1. Check for syntax errors
+2. Verify DEFAULT_STATE digit strings match the schema
+3. Verify BUILD_ALIASES map to valid project IDs
+4. Check stat names in statEffect/popEffect match STAT_NAMES/POP_NAMES
+5. Set DEBUG_MODE to true and explain each section</code></pre>
+
+<h2 id="safe-component-removal">Safe Component Removal</h2>
+
+<p>Set any feature to <code>false</code> in the <code>FEATURES</code> object to disable it. To permanently remove code:</p>
+
+<div class="warning">
+<strong>WARNING:</strong> Always make a backup before deleting code.
+</div>
+
+<h3>Removable Components</h3>
+<table>
+<tr><th>Component</th><th>Toggle</th><th>What to Delete</th></tr>
+<tr><td>Lore Engine</td><td><code>LORE_ENGINE</code></td><td>LORE_ENTRIES array, Section 11, lore application in Section 12</td></tr>
+<tr><td>Stat Keywords</td><td><code>STAT_KEYWORDS</code></td><td>STAT_KEYWORDS object, Section 10c</td></tr>
+<tr><td>Timeline Events</td><td><code>TIMELINE_EVENTS</code></td><td>TIMELINE_EVENTS array, timeline block in Section 12</td></tr>
+<tr><td>Diplomacy</td><td><code>DIPLOMACY_SYSTEM</code></td><td>NATION_TABLE, related constants, Section 10e, diplomacy display</td></tr>
+<tr><td>Project System</td><td><code>PROJECT_SYSTEM</code></td><td>PROJECT_TABLE, BUILD_ALIASES, build/upgrade handlers</td></tr>
+<tr><td>Resource System</td><td><code>RESOURCE_SYSTEM</code></td><td>RESOURCE_NAMES, cost tables, resource generation in 10d</td></tr>
+</table>
+
+<h3>Critical Sections (NEVER DELETE)</h3>
+<ul>
+    <li>Section 2: Zero-width encoding/decoding</li>
+    <li>Section 6: Context access</li>
+    <li>Section 7: State extraction and parsing</li>
+    <li>Section 8: Helper functions</li>
+    <li>Section 9: Mode detection and command parsing</li>
+    <li>Section 13: State injection</li>
+</ul>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3>Stats Not Changing</h3>
+<ul>
+    <li>Verify <code>STAT_KEYWORDS</code> contains keywords your players actually use</li>
+    <li>Check that stat names match <code>STAT_NAMES</code> exactly</li>
+    <li>Enable <code>DEBUG_MODE: true</code> to see parsed values</li>
+    <li>Check debug output for &ldquo;Extracted state&rdquo; to confirm state persistence</li>
+</ul>
+
+<h3>Projects Not Completing</h3>
+<ul>
+    <li>Days must advance for projects to progress</li>
+    <li>Check that <code>TIME_TRACKING: true</code></li>
+    <li>Verify the day counter is incrementing in debug output</li>
+</ul>
+
+<h3>Diplomacy Not Working</h3>
+<ul>
+    <li>Verify faction names match <code>NATION_TABLE</code> aliases</li>
+    <li>Check <code>DIPLOMACY_SYSTEM: true</code></li>
+    <li>Ensure diplomacy string is 12 digits</li>
+</ul>
+
+<h3>Lore Not Activating</h3>
+<ul>
+    <li>Check keyword spelling (case-insensitive matching)</li>
+    <li>Verify <code>LORE_ENGINE: true</code></li>
+    <li>Check <code>minMessages</code> is not set too high</li>
+    <li>Enable <code>DEBUG_MODE: true</code> to see which entries activate</li>
+</ul>
+
+<h3>State Not Persisting</h3>
+<ul>
+    <li>The AI must reproduce hidden characters. Verify character card includes reproduction instructions.</li>
+    <li>Increase <code>SEARCH_DEPTH</code> if conversations are long</li>
+    <li>Check debug output for &ldquo;Extracted state&rdquo; &mdash; if &ldquo;NONE&rdquo;, the AI is not reproducing state</li>
+</ul>
+
+<h3>Script Not Loading</h3>
+<ul>
+    <li>Run a JavaScript syntax validator (<code>node -c filename.js</code>)</li>
+    <li>Check for missing commas, brackets, or quotes in data tables</li>
+    <li>Verify <code>FEATURES</code> object syntax is correct</li>
+    <li>Ensure no essential code sections were deleted</li>
+</ul>
+
+<hr>
+
+<div class="footer">
+<p>Created for the GitInTheVan Scripts community. Modify, share, and improve upon this system freely.</p>
+</div>
+
+</body>
+</html>

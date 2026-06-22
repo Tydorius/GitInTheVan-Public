@@ -1,0 +1,217 @@
+{
+  "pack_name": "GitInTheVan Public Cantrips",
+  "pack_author": "Tydorius",
+  "pack_version": "1.0.0",
+  "pack_description": "A collection of cantrips for roleplay and creative writing with GitInTheVan. Includes dice rolling, context management, adaptive lorebooks, multi-character support, faction management, persistent memory, and progressive disclosure systems.",
+  "pack_url": "",
+  "files": [
+    {
+      "path": "cantrips/Adaptive_Lorebook_Template.json",
+      "type": "cantrip",
+      "name": "Adaptive Lorebook Template",
+      "description": "Manages token usage by dynamically adjusting lore detail level (full/summary/bullet) based on keyword mention count and relevance.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "lorebook",
+        "adaptive",
+        "tokens"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Advanced_Faction_Management_Template.json",
+      "type": "cantrip",
+      "name": "Advanced Faction Management Template",
+      "description": "Two-mode faction governance system (roleplay + management interface). Tracks diplomacy, resources, projects, and population with persistent state.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "faction",
+        "governance",
+        "persistent"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Anti_Omniscience_Investigation_Template.json",
+      "type": "cantrip",
+      "name": "Anti-Omniscience Investigation Template",
+      "description": "Progressive disclosure system preventing the LLM from knowing things it shouldn't. Uses flag-gated content unlocking with strict information isolation.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "lorebook",
+        "investigation",
+        "progressive"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Complex_Lorebook_Template.json",
+      "type": "cantrip",
+      "name": "Complex Lorebook Template",
+      "description": "Complex dynamic lorebook foundation with cascading keyword triggers, timeline events, stat parsing, and priority-based lore ordering.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "lorebook",
+        "complex",
+        "dynamic"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Context_Aware_Multiple_Character_Template.json",
+      "type": "cantrip",
+      "name": "Context Aware Multiple Character Template",
+      "description": "Advanced drop-in/drop-out character management with adaptive detail levels (full/limited/summary) that scale to the available token budget.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "character",
+        "multi-character",
+        "adaptive"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Context_Control_Awareness_Template.json",
+      "type": "cantrip",
+      "name": "Context Control Awareness Template",
+      "description": "Companion script that reads token budgets injected by the Context Control Template. Adapts lore detail levels (full/summary/bullets) to stay within the per-script allocation.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "utility",
+        "context",
+        "budget"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Context_Control_Template.json",
+      "type": "cantrip",
+      "name": "Context Control Template",
+      "description": "Master context management script. Provides /maxtokens command for selecting context window size, then calculates and injects per-script token budgets for all active content scripts.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "utility",
+        "context",
+        "budget"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Dice_Controller.json",
+      "type": "cantrip",
+      "name": "Dice Controller",
+      "description": "Intercepts /roll commands and dice requests. Supports polyhedral dice, exploding dice, Savage Worlds Aces/Wild Die. Injects formatted results into scenario.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "utility",
+        "dice",
+        "gaming"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Hidden_Persistent_Memory_Template.json",
+      "type": "cantrip",
+      "name": "Hidden Persistent Memory Template",
+      "description": "Modular persistent state system using zero-width unicode for invisible data transmission. Tracks weather, location, and emotional state across messages.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "memory",
+        "persistent",
+        "state"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Multiple_Character_Template.json",
+      "type": "cantrip",
+      "name": "Multiple Character Template",
+      "description": "Basic drop-in/drop-out character management. Characters included dynamically based on recent context mentions via regex matching.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "character",
+        "multi-character"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Persistent_Flags_Lorebook_Template.json",
+      "type": "cantrip",
+      "name": "Persistent Flags Lorebook Template",
+      "description": "Hex-based flag system for tracking persistent state across sessions. Includes anti-cheat validation and dynamic lore activation based on flag state.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "memory",
+        "flags",
+        "persistent"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/Progressive_Sentence_Lorebook_Template.json",
+      "type": "cantrip",
+      "name": "Progressive Sentence Lorebook Template",
+      "description": "Builds context sentence-by-sentence by priority tiers (HIGH/MEDIUM/LOW) instead of switching between full/summary/bullet versions.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "lorebook",
+        "progressive",
+        "adaptive"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/PropertyExploration.json",
+      "type": "cantrip",
+      "name": "Property Exploration",
+      "description": "Debug and utility script that inspects context.character and context.chat object properties and types. Outputs to console.log for debugging.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "utility",
+        "debug"
+      ],
+      "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "cantrips/TimeDelay_Script_Template.json",
+      "type": "cantrip",
+      "name": "Time Delay Script Template",
+      "description": "Progressive disclosure via message-count thresholds. Tracks hours, canon count, and timeline events. Embeds hidden clues that unlock at specific story beats.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-06-22T00:00:00Z",
+      "tags": [
+        "lorebook",
+        "timeline",
+        "progressive"
+      ],
+      "min_gitv_version": "0.5.0"
+    }
+  ]
+}

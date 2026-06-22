@@ -1,0 +1,471 @@
+<h1>Hidden Persistent Memory Template</h1>
+
+<p>This is a very large script. It is intended to be used as an example, so that it can be broken up into other Scripts.</p>
+
+<p>Because it is an example, it has not been fully tested. The use of zero-width characters was tested, as well as the ability for them to persist in last_messages.</p>
+
+<p>Much of the logic here has been taken from my previous Scripts and adapted using an LLM to make it utilize the zero-width method for data retention.</p>
+
+<p>Mileage will vary based upon the model. If your audience is non-proxy users you will want to be careful about how much context you feed back to the model as you will need to ensure you have space for both the Script specific instructions AND the actual content.</p>
+
+<p>A GitInTheVan Scripts template that uses zero-width unicode characters for invisible state persistence between Script instances. Tracks weather, location, emotional state, inventory, schedule, and character presence without any visible markers in the chat.</p>
+
+<h2>Table of Contents</h2>
+<ul>
+<li><a href="#what-this-template-does">What This Template Does</a></li>
+<li><a href="#key-features">Key Features</a></li>
+<li><a href="#comparison-to-persistent-flags">Comparison to Persistent Flags</a></li>
+<li><a href="#how-it-works">How It Works</a></li>
+<li><a href="#zero-width-encoding">Zero-Width Encoding</a></li>
+<li><a href="#state-string-format">State String Format</a></li>
+<li><a href="#execution-cycle">Execution Cycle</a></li>
+<li><a href="#components">Components</a></li>
+<li><a href="#weather-tracking">Weather Tracking</a></li>
+<li><a href="#location-tracking">Location Tracking</a></li>
+<li><a href="#emotional-state">Emotional State</a></li>
+<li><a href="#inventory">Inventory</a></li>
+<li><a href="#scheduletime">Schedule/Time</a></li>
+<li><a href="#character-presence">Character Presence</a></li>
+<li><a href="#configuration">Configuration</a></li>
+<li><a href="#quick-start">Quick Start</a></li>
+<li><a href="#component-data-tables">Component Data Tables</a></li>
+<li><a href="#scene-shift-detection">Scene Shift Detection</a></li>
+<li><a href="#copypaste-isolation">Copy/Paste Isolation</a></li>
+<li><a href="#troubleshooting">Troubleshooting</a></li>
+<li><a href="#known-limitations">Known Limitations</a></li>
+<li><a href="#adding-custom-components">Adding Custom Components</a></li>
+</ul>
+
+<h2 id="what-this-template-does">What This Template Does</h2>
+
+<p>The Hidden Persistent Memory template replaces visible flag strings (like <code>**FLAGS:** XX:XX:XX</code>) with invisible zero-width unicode characters embedded in the AI's output. State data passes between Script cycles without breaking user immersion.</p>
+
+<p>This is the successor to the Persistent Flags Lorebook Template. Where that template uses visible hex strings that the user can see and potentially cheat, this template encodes all state information invisibly.</p>
+
+<h2 id="key-features">Key Features</h2>
+
+<ul>
+<li><strong>Invisible State Tracking</strong>: Zero-width unicode characters encode data without visible markers</li>
+<li><strong>Modular Components</strong>: Each tracking system (weather, location, emotions, etc.) can be used independently</li>
+<li><strong>Scene Shift Detection</strong>: Keyword-weighted analysis detects potential location changes and asks the LLM to evaluate</li>
+<li><strong>Emotion Bitmask</strong>: 16-bit bitmask tracks 8 emotion axes at 4 intensity levels each</li>
+<li><strong>Character Presence</strong>: Tracks which characters are in the scene with arrival/departure evaluation</li>
+<li><strong>Token Budget Management</strong>: Automatically reduces detail levels (Full > Summary > Bullet) when context is tight</li>
+<li><strong>Natural Emotion Decay</strong>: Emotions gradually diminish over time without reinforcement</li>
+<li><strong>ES6 Enabled</strong>: Requires <code>"use worker"</code> directive for modern JavaScript support</li>
+</ul>
+
+<h2 id="comparison-to-persistent-flags">Comparison to Persistent Flags</h2>
+
+<table>
+<tr><th>Feature</th><th>Persistent Flags</th><th>Hidden Persistent Memory</th></tr>
+<tr><td>State visibility</td><td>Visible hex string</td><td>Invisible unicode</td></tr>
+<tr><td>State format</td><td><code>**FLAGS:** 00:1A:FF</code></td><td>Zero-width characters</td></tr>
+<tr><td>Tracking types</td><td>Single flag chain</td><td>Multiple categories</td></tr>
+<tr><td>Anti-cheat needed</td><td>Yes</td><td>Not applicable</td></tr>
+<tr><td>Token overhead</td><td>Moderate</td><td>Low</td></tr>
+<tr><td>User can edit state</td><td>Yes (copy/paste)</td><td>No (invisible)</td></tr>
+<tr><td>Modularity</td><td>Monolithic</td><td>Component-based</td></tr>
+</table>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<h3 id="zero-width-encoding">Zero-Width Encoding</h3>
+
+<p>The system maps decimal digits (0-9) to zero-width unicode characters:</p>
+
+<table>
+<tr><th>Digit</th><th>Character</th><th>Unicode</th></tr>
+<tr><td>0</td><td>Zero-Width Space</td><td>U+200B</td></tr>
+<tr><td>1</td><td>Zero-Width Non-Joiner</td><td>U+200C</td></tr>
+<tr><td>2</td><td>Zero-Width Joiner</td><td>U+200D</td></tr>
+<tr><td>3</td><td>Zero-Width No-Break Space</td><td>U+FEFF</td></tr>
+<tr><td>4</td><td>Word Joiner</td><td>U+2060</td></tr>
+<tr><td>5</td><td>Function Application</td><td>U+2061</td></tr>
+<tr><td>6</td><td>Invisible Times</td><td>U+2062</td></tr>
+<tr><td>7</td><td>Invisible Separator</td><td>U+2063</td></tr>
+<tr><td>8</td><td>Left-to-Right Mark</td><td>U+200E</td></tr>
+<tr><td>9</td><td>Right-to-Left Mark</td><td>U+200F</td></tr>
+</table>
+
+<p>State data is encoded as a decimal string, then each digit is replaced with its corresponding zero-width character. The encoded block is wrapped in header/footer markers (ZWJ ZWJ) for reliable extraction.</p>
+
+<h3 id="state-string-format">State String Format</h3>
+
+<p>The state is organized as pipe-delimited category segments:</p>
+
+<pre><code>CATEGORY_ID + DATA | CATEGORY_ID + DATA | ...</code></pre>
+
+<p>Example state string (decimal, before encoding):</p>
+
+<pre><code>0102|0205|0314820|0400010010|05015|0601010</code></pre>
+
+<table>
+<tr><th>Segment</th><th>Category</th><th>Value</th><th>Meaning</th></tr>
+<tr><td><code>0102</code></td><td>Weather (01)</td><td>Index 02</td><td>Raining</td></tr>
+<tr><td><code>0205</code></td><td>Location (02)</td><td>Index 05</td><td>Dungeon</td></tr>
+<tr><td><code>0314820</code></td><td>Emotion (03)</td><td>14820</td><td>Emotion bitmask</td></tr>
+<tr><td><code>0400010010</code></td><td>Inventory (04)</td><td>Bitfield</td><td>Items 4 and 8 owned</td></tr>
+<tr><td><code>05015</code></td><td>Schedule (05)</td><td>Day 015</td><td>Day 15</td></tr>
+<tr><td><code>0601010</code></td><td>Characters (06)</td><td>Bitfield</td><td>Characters 2 and 4 present</td></tr>
+</table>
+
+<h3 id="execution-cycle">Execution Cycle</h3>
+
+<ol>
+<li>Script scans the last 10 messages for encoded state blocks</li>
+<li>Decodes the most recent valid state found</li>
+<li>Parses into category segments</li>
+<li>Each active component processes its segment: checks keywords, updates state, builds context</li>
+<li>Re-encodes updated state</li>
+<li>Appends instruction for LLM to reproduce encoded string</li>
+<li>LLM copies invisible string at start and end of its response</li>
+<li>Cycle repeats</li>
+</ol>
+
+<h2 id="components">Components</h2>
+
+<h3 id="weather-tracking">Weather Tracking</h3>
+
+<p><strong>Category ID</strong>: <code>01</code><br>
+<strong>Detail method</strong>: Flat (no tiering)</p>
+
+<p>Tracks current weather as an index into a predefined table. Weather changes when keywords are detected in the user's message.</p>
+
+<table>
+<tr><th>Index</th><th>Weather</th><th>Keywords</th></tr>
+<tr><td>00</td><td>Clear</td><td>clear sky, sunny, sunlight</td></tr>
+<tr><td>01</td><td>Cloudy</td><td>cloudy, overcast, gray sky</td></tr>
+<tr><td>02</td><td>Rain</td><td>rain, raining, downpour</td></tr>
+<tr><td>03</td><td>Storm</td><td>storm, thunder, lightning</td></tr>
+<tr><td>04</td><td>Snow</td><td>snow, snowing, blizzard</td></tr>
+<tr><td>05</td><td>Fog</td><td>fog, mist, haze</td></tr>
+<tr><td>06</td><td>Windy</td><td>wind, windy, gale</td></tr>
+<tr><td>07</td><td>Hail</td><td>hail, hailstorm</td></tr>
+<tr><td>08</td><td>Heatwave</td><td>heatwave, scorching, sweltering</td></tr>
+<tr><td>09</td><td>Eclipse</td><td>eclipse, darkened sky, black sun</td></tr>
+</table>
+
+<h3 id="location-tracking">Location Tracking</h3>
+
+<p><strong>Category ID</strong>: <code>02</code><br>
+<strong>Detail method</strong>: Summary (Full / Summary / Bullet)</p>
+
+<p>Tracks current location with three detail levels. Includes scene shift detection using keyword weights.</p>
+
+<p>When the user's message contains travel-related keywords, the system scores potential destination locations based on keyword matches. If a candidate exceeds the weight threshold, the script injects an evaluation prompt asking the LLM to determine if a scene change actually occurred.</p>
+
+<p>Default locations: Tavern, Forest, Castle, Market, Dungeon</p>
+
+<h3 id="emotional-state">Emotional State</h3>
+
+<p><strong>Category ID</strong>: <code>03</code><br>
+<strong>Detail method</strong>: Ranked information (highest intensity first)</p>
+
+<p>Tracks 8 emotion axes using a 16-bit bitmask (2 bits per emotion):</p>
+
+<table>
+<tr><th>Bits</th><th>Emotion</th><th>Triggers</th></tr>
+<tr><td>0-1</td><td>Affectionate</td><td>praise, compliment, kind, gentle</td></tr>
+<tr><td>2-3</td><td>Frustrated</td><td>reject, insult, refuse, deny</td></tr>
+<tr><td>4-5</td><td>Anxious</td><td>danger, threat, risk, afraid</td></tr>
+<tr><td>6-7</td><td>Romantic</td><td>flirt, kiss, hold hands, embrace</td></tr>
+<tr><td>8-9</td><td>Playful</td><td>joke, tease, laugh, grin</td></tr>
+<tr><td>10-11</td><td>Dominant</td><td>command, order, control, submit</td></tr>
+<tr><td>12-13</td><td>Trust</td><td>confide, trust, share, honest</td></tr>
+<tr><td>14-15</td><td>Intimacy</td><td>close, intimate, vulnerable</td></tr>
+</table>
+
+<p>Intensity levels: 00=off, 01=low, 10=medium, 11=high</p>
+
+<p>Natural decay: When no emotion triggers are detected, all active emotions decrease by one intensity level per cycle.</p>
+
+<h3 id="inventory">Inventory</h3>
+
+<p><strong>Category ID</strong>: <code>04</code><br>
+<strong>Detail method</strong>: Summary (Full / Summary / Bullet)</p>
+
+<p>Tracks item ownership as a bitfield (one digit per item: 0=unowned, 1=owned). Supports weapons, consumables, construction materials, resources, currency, and accessories. Includes kingdom-building items (castle blueprints, iron ingots, stone blocks, timber).</p>
+
+<p>Default items (8 slots): Iron Sword, Healing Potion, Castle Blueprint, Iron Ingots, Stone Blocks, Timber, Gold Coins, Magic Amulet</p>
+
+<h3 id="scheduletime">Schedule/Time</h3>
+
+<p><strong>Category ID</strong>: <code>05</code><br>
+<strong>Detail method</strong>: Ranked information (current day + triggered events)</p>
+
+<p>Tracks a day counter (1-999) and triggers scheduled events at specific day thresholds.</p>
+
+<table>
+<tr><th>Keywords</th><th>Day increment</th></tr>
+<tr><td>next day, next morning, wake up, dawn breaks</td><td>+1</td></tr>
+<tr><td>days later, days pass, a week, several days</td><td>+3</td></tr>
+</table>
+
+<p>Default events: Day 1 (arrival), Day 7 (weekly), Day 14 (fortnight), Day 30 (monthly), Day 90 (quarterly)</p>
+
+<h3 id="character-presence">Character Presence</h3>
+
+<p><strong>Category ID</strong>: <code>06</code><br>
+<strong>Detail method</strong>: Summary (Full / Summary / Bullet)</p>
+
+<p>Tracks which characters from a predefined list are present in the current scene. Uses the Multiple Character Template's approach for mention detection with persistent tracking.</p>
+
+<ul>
+<li>Character presence stored as a bitfield (1=present, 0=absent)</li>
+<li>Arrival keywords detected: arrives, enters, walks in, comes in, approaches</li>
+<li>Departure keywords detected: leaves, exits, walks away, departs, heads out</li>
+<li>Mentioned-but-absent characters get an evaluation prompt for the LLM</li>
+</ul>
+
+<p>Default characters: Alex, Maya, Jordan, Sam, Riley, Casey (6 slots)</p>
+
+<h2 id="configuration">Configuration</h2>
+
+<h3>Feature Toggles</h3>
+
+<pre><code>const FEATURES = {
+    CORE_ENCODING: true,         // Always keep true
+    WEATHER_TRACKING: true,      // Weather component
+    LOCATION_TRACKING: true,     // Location + scene shifts
+    EMOTION_TRACKING: true,      // Emotion bitmask
+    INVENTORY_TRACKING: true,    // Item ownership
+    SCHEDULE_TRACKING: true,     // Day counter + events
+    CHARACTER_TRACKING: true,    // Multi-character presence
+    SCENE_SHIFT_DETECTION: true, // Location change evaluation
+    EMOTION_DECAY: true,         // Natural emotion reduction
+    TOKEN_MANAGEMENT: true,      // Auto detail reduction
+    DEBUG_MODE: false            // Show encoded state info
+};</code></pre>
+
+<h3>Token Budget</h3>
+
+<pre><code>const CONFIG = {
+    MAX_SCENARIO_CHARS: 600,       // Total scenario addition budget
+    MAX_PERSONALITY_CHARS: 400,    // Total personality addition budget
+    SEARCH_DEPTH: 10,              // Messages to scan for state
+    SCENE_SHIFT_THRESHOLD: 4,      // Weight needed to trigger shift eval
+    EMOTION_DECAY_RATE: 1          // Steps emotions decay per cycle
+};</code></pre>
+
+<h3>Default State</h3>
+
+<pre><code>const DEFAULT_STATE = {
+    '01': '00',        // Weather: clear
+    '02': '00',        // Location: first entry
+    '03': '00000',     // Emotion: all off
+    '04': '00000000',  // Inventory: empty
+    '05': '001',       // Schedule: day 1
+    '06': '000000'     // Characters: all absent
+};</code></pre>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3>Minimal Setup (Weather Only)</h3>
+
+<ol>
+<li>Copy the full template into a Script lorebook entry</li>
+<li>Disable all components except <code>CORE_ENCODING</code> and <code>WEATHER_TRACKING</code></li>
+<li>Modify <code>WEATHER_TABLE</code> with your scenario's weather conditions</li>
+<li>Set the default weather index in <code>DEFAULT_STATE</code></li>
+<li>Test by mentioning weather keywords in chat</li>
+</ol>
+
+<h3>Using Multiple Components</h3>
+
+<ol>
+<li>Enable the components you need in <code>FEATURES</code></li>
+<li>Modify each component's data table for your scenario</li>
+<li>Adjust <code>DEFAULT_STATE</code> to match your starting conditions</li>
+<li>Set <code>CONFIG.MAX_SCENARIO_CHARS</code> and <code>CONFIG.MAX_PERSONALITY_CHARS</code> based on your token limits</li>
+<li>Enable <code>DEBUG_MODE: true</code> to verify state encoding/decoding</li>
+<li>Test each component independently before combining</li>
+</ol>
+
+<h2 id="component-data-tables">Component Data Tables</h2>
+
+<h3>Customizing Weather</h3>
+
+<pre><code>{ id: 'clear', keywords: ['clear sky', 'sunny'], description: 'The sky is clear and bright.' }</code></pre>
+
+<h3>Customizing Locations</h3>
+
+<pre><code>{
+    id: 'tavern',
+    keywords: ['tavern', 'bar', 'inn'],
+    full: {
+        scenario: ' Detailed description...',
+        personality: ', personality trait'
+    },
+    summary: {
+        scenario: ' Shorter description...',
+        personality: ', shorter trait'
+    },
+    bullet: {
+        scenario: ' Location: name. Key features.',
+        personality: ', brief trait'
+    }
+}</code></pre>
+
+<h3>Customizing Emotions</h3>
+
+<pre><code>// Emotion axes
+{ name: 'affectionate', triggers: ['praise', 'compliment', 'kind'] }
+
+// Emotion personality templates
+affectionate: {
+    low: { personality: ', slightly warm in demeanor' },
+    medium: { personality: ', noticeably affectionate' },
+    high: { personality: ', deeply affectionate' }
+}</code></pre>
+
+<h3>Customizing Inventory</h3>
+
+<pre><code>{
+    id: 'iron_sword',
+    keywords: ['sword', 'iron sword', 'blade'],
+    category: 'weapon',
+    full: { scenario: '...', personality: '...' },
+    summary: { scenario: '...', personality: '...' },
+    bullet: { scenario: '...', personality: '...' }
+}</code></pre>
+
+<p>Update <code>DEFAULT_STATE[CATEGORY.INVENTORY]</code> to match the number of items (one digit per item).</p>
+
+<h3>Customizing Characters</h3>
+
+<pre><code>{
+    id: 'alex',
+    name: 'Alex',
+    aliases: ['alexander', 'alec'],
+    departureKeywords: ['leaves', 'exits', 'walks away'],
+    arrivalKeywords: ['arrives', 'enters', 'walks in'],
+    full: {
+        scenario: "Alex was mentioned...",
+        personality: "Alex personality traits...",
+        example_dialogs: "&lt;BEGIN 'Alex' EXAMPLE DIALOGS&gt;...&lt;END&gt;"
+    },
+    summary: { scenario: "...", personality: "...", example_dialogs: "" },
+    bullet: { scenario: "...", personality: "...", example_dialogs: "" }
+}</code></pre>
+
+<h2 id="scene-shift-detection">Scene Shift Detection</h2>
+
+<h3>Keyword Weight Categories</h3>
+
+<table>
+<tr><th>Category</th><th>Weight</th><th>Example Keywords</th></tr>
+<tr><td>Travel</td><td>3</td><td>walk, go to, head to, leave, arrive</td></tr>
+<tr><td>Indoor</td><td>2</td><td>step inside, walk in, open the door</td></tr>
+<tr><td>Outdoor</td><td>2</td><td>step outside, go outside, fresh air</td></tr>
+<tr><td>Rest</td><td>1</td><td>sit down, settle, stay at</td></tr>
+<tr><td>Distance</td><td>2</td><td>across, through the, beyond</td></tr>
+</table>
+
+<p>Each candidate location also gets +2 weight when its own keywords are matched.</p>
+
+<h3>Tuning the Threshold</h3>
+
+<ul>
+<li><strong>Lower threshold</strong> (2-3): More sensitive, may trigger false positives</li>
+<li><strong>Default</strong> (4): Balanced detection</li>
+<li><strong>Higher threshold</strong> (6-8): Only detects explicit travel language</li>
+</ul>
+
+<h3>Shift Evaluation</h3>
+
+<p>When a potential shift is detected, the script does NOT immediately change the location. Instead, it injects an instruction asking the LLM to evaluate whether the scene change actually occurred based on narrative context.</p>
+
+<h2 id="copypaste-isolation">Copy/Paste Isolation</h2>
+
+<p>Each component section is clearly marked with <code>// === COMPONENT: NAME ===</code> comments. To isolate a component:</p>
+
+<ol>
+<li>Always include the three CORE sections (encoding, extraction, injection)</li>
+<li>Include the desired COMPONENT section</li>
+<li>Include the corresponding output section in OUTPUT ASSEMBLY</li>
+<li>Remove entries for unused components from <code>DEFAULT_STATE</code></li>
+<li>Remove unused component processing from <code>buildStateString()</code></li>
+<li>Remove unused component output from the OUTPUT ASSEMBLY section</li>
+</ol>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<h3>State Not Persisting</h3>
+
+<ul>
+<li>Enable <code>DEBUG_MODE: true</code> to see the decoded state</li>
+<li>Check that the LLM is reproducing the encoded string</li>
+<li>Verify <code>SEARCH_DEPTH</code> is sufficient (default 10 messages)</li>
+<li>Check that the state string format is valid (decimal digits and pipe delimiters only)</li>
+</ul>
+
+<h3>LLM Not Reproducing State</h3>
+
+<ul>
+<li>Keep the <code>[PERSISTENT MEMORY]</code> instruction block short and clear</li>
+<li>Ensure the instruction appears at the end of scenario context</li>
+<li>Avoid overloading the LLM with too many simultaneous instructions</li>
+</ul>
+
+<h3>Too Much Context Being Injected</h3>
+
+<ul>
+<li>Enable <code>TOKEN_MANAGEMENT</code> and reduce <code>MAX_SCENARIO_CHARS</code> / <code>MAX_PERSONALITY_CHARS</code></li>
+<li>Components will automatically drop from Full to Summary to Bullet</li>
+<li>Consider disabling components you don't need</li>
+<li>Shorten the text in your data table entries</li>
+</ul>
+
+<h3>Emotions Not Changing</h3>
+
+<ul>
+<li>Check that trigger keywords are in the user's message (lowercase matching)</li>
+<li>Remember emotions are encoded as a single decimal number</li>
+<li>Each axis can only go up to 3 (binary 11)</li>
+<li>Emotions decay naturally each cycle when no triggers fire</li>
+</ul>
+
+<h3>Location Not Shifting</h3>
+
+<ul>
+<li>Lower <code>SCENE_SHIFT_THRESHOLD</code> to make detection more sensitive</li>
+<li>Ensure location keywords match how users describe places</li>
+<li>Scene shifts require the LLM to confirm - the script only suggests</li>
+</ul>
+
+<h3>Characters Not Appearing</h3>
+
+<ul>
+<li>Verify the character's name or aliases appear in the user's message</li>
+<li>Check if arrival keywords are present (arrives, enters, walks in)</li>
+<li>Characters mentioned without arrival keywords get an evaluation prompt</li>
+<li>Check <code>DEFAULT_STATE</code> - characters start absent by default</li>
+</ul>
+
+<h2 id="known-limitations">Known Limitations</h2>
+
+<ol>
+<li><strong>Platform portability</strong>: Copying AI text to other platforms may strip zero-width characters</li>
+<li><strong>Model compliance</strong>: LLMs occasionally fail to reproduce exact zero-width strings; the script falls back to defaults gracefully</li>
+<li><strong>No manual state editing</strong>: Users cannot see or modify state like they could with visible hex flags</li>
+<li><strong>Debugging difficulty</strong>: Invisible state requires DEBUG_MODE to troubleshoot</li>
+<li><strong>Character limits</strong>: Each component adds encoding overhead; very complex scenarios should limit active components</li>
+</ol>
+
+<h2 id="adding-custom-components">Adding Custom Components</h2>
+
+<ol>
+<li>Define a new <code>CATEGORY_ID</code> (2-digit string, e.g., <code>'07'</code>)</li>
+<li>Add a default value to <code>DEFAULT_STATE</code></li>
+<li>Create a data table and processing section under a <code>// === COMPONENT: NAME ===</code> comment</li>
+<li>Add state encoding in <code>buildStateString()</code></li>
+<li>Add output logic in the OUTPUT ASSEMBLY section</li>
+<li>Add a feature toggle in <code>FEATURES</code></li>
+</ol>
+
+<hr>
+
+<p>Template: <a href="https://github.com/Tydorius/JanitorAI_Scripts/blob/main/Templates/Hidden_Persistent_Memory_Template.js">Hidden_Persistent_Memory_Template.js</a><br>
+Author: <a href="https://gitinthevan.com/profiles/0f618e4a-4d83-49da-969b-aba188761259_profile-of-tydorius">Tydorius on GitInTheVan</a><br>
+Support: <a href="https://ko-fi.com/tydorius">Ko-fi</a></p>

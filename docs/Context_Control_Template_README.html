@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context Control Template</title>
+<style>
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    line-height: 1.6;
+    color: #1a1a1a;
+    background: #fafafa;
+}
+h1 { font-size: 1.8em; border-bottom: 2px solid #333; padding-bottom: 10px; margin-top: 30px; }
+h2 { font-size: 1.4em; color: #2a2a2a; border-bottom: 1px solid #ccc; padding-bottom: 6px; margin-top: 28px; }
+h3 { font-size: 1.15em; color: #333; margin-top: 20px; }
+p { margin: 10px 0; }
+a { color: #0366d6; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+    background: #eef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+}
+pre {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    padding: 16px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.85em;
+    line-height: 1.5;
+}
+pre code { background: none; padding: 0; color: inherit; }
+ul, ol { margin: 8px 0; padding-left: 24px; }
+li { margin: 4px 0; }
+table { border-collapse: collapse; width: 100%; margin: 12px 0; }
+th, td { border: 1px solid #ddd; padding: 8px 12px; text-align: left; }
+th { background: #f0f0f0; font-weight: 600; }
+tr:nth-child(even) { background: #f8f8f8; }
+strong { font-weight: 600; }
+em { color: #555; }
+hr { border: none; border-top: 1px solid #ddd; margin: 30px 0; }
+.intro { font-size: 1.05em; color: #333; margin: 16px 0; }
+.toc { background: #f0f0f0; padding: 16px 24px; border-radius: 6px; margin: 16px 0; }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: 6px 0; }
+.warning { background: #fff3cd; border-left: 4px solid #ffc107; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.note { background: #e7f3ff; border-left: 4px solid #0366d6; padding: 12px 16px; margin: 16px 0; border-radius: 0 4px 4px 0; }
+.footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #ddd; color: #666; font-size: 0.9em; }
+</style>
+</head>
+<body>
+
+<h1>Context Control Template</h1>
+
+<p class="intro">A master token budget management script for GitInTheVan that provides slash commands to select context window size, calculates per-script token allocations, and injects budget information that other lorebooks read to cap their output.</p>
+
+<p>Designed to solve the problem of multiple lorebooks competing for limited context space, especially on smaller models like LLM where every token matters.</p>
+
+<div class="toc">
+<h2>Table of Contents</h2>
+<ul>
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#quick-start">Quick Start</a></li>
+    <li><a href="#how-it-works">How It Works</a></li>
+    <li><a href="#tier-reference">Tier Reference</a></li>
+    <li><a href="#token-budget-math">Token Budget Math</a></li>
+    <li><a href="#command-reference">Command Reference</a></li>
+    <li><a href="#state-schema">State Schema</a></li>
+    <li><a href="#character-card-setup">Character Card Setup</a></li>
+    <li><a href="#integration-guide">Integration Guide for Other Scripts</a></li>
+    <li><a href="#ai-assisted-setup">For Non-Programmers: AI-Assisted Setup</a></li>
+    <li><a href="#safe-removal">Safe Removal</a></li>
+    <li><a href="#troubleshooting">Troubleshooting</a></li>
+</ul>
+</div>
+
+<h2 id="overview">Overview</h2>
+
+<p>This template provides:</p>
+
+<ul>
+    <li><strong>Slash Command Control</strong>: <code>/maxtokens</code> for tier selection, <code>/budget</code> to display current settings</li>
+    <li><strong>Five Context Tiers</strong>: From 8k (LLM) to 128k+ (DeepSeek, Hermes 3, Llama 4)</li>
+    <li><strong>Automatic Budget Division</strong>: Reads <code>[Lorebook Count: N]</code> from the scenario and divides the token budget evenly across all active lorebooks</li>
+    <li><strong>Human-Readable Budget Output</strong>: Injects <code>[CONTEXT BUDGET: ...]</code> into the scenario text for any script to parse</li>
+    <li><strong>Zero-Width State Persistence</strong>: Stores the tier selection across messages using invisible Unicode characters</li>
+</ul>
+
+<p>This script is one half of a two-script framework. The other half is the <strong>Context Control Awareness Template</strong>, which demonstrates how any lorebook can read the budget and adapt its output.</p>
+
+<h2 id="quick-start">Quick Start</h2>
+
+<h3>Step 1: Add to Character Card</h3>
+
+<p>Install <code>Context_Control_Template.js</code> as a lorebook entry in your character card. Set it to always activate (no keyword requirement, or use a keyword like <code>*</code>).</p>
+
+<h3>Step 2: Set Lorebook Count</h3>
+
+<p>Add this line to your character card's scenario text:</p>
+
+<pre><code>[Lorebook Count: 5]</code></pre>
+
+<p>Replace <code>5</code> with the number of lorebooks/scripts active in your session (including this one).</p>
+
+<h3>Step 3: Select Your Tier</h3>
+
+<p>Send <code>/maxtokens</code> in chat to see the tier selection menu, then respond with a number 1-5. Or set directly with <code>/maxtokens 3</code>.</p>
+
+<h3>Step 4: Verify</h3>
+
+<p>Send <code>/budget</code> to see the current allocation. The response will show tier, context size, total budget, and per-script tokens.</p>
+
+<h2 id="how-it-works">How It Works</h2>
+
+<p>The script runs on every AI response and follows this flow:</p>
+
+<ol>
+    <li><strong>Scan for state</strong>: Reads recent messages for zero-width encoded state (tier + setup flag)</li>
+    <li><strong>Check for commands</strong>: Parses the last message for <code>/maxtokens</code> or <code>/budget</code></li>
+    <li><strong>Calculate budget</strong>: <code>context_window * 0.10 / lorebook_count</code></li>
+    <li><strong>Inject output</strong>: Appends <code>[CONTEXT BUDGET: ...]</code> to the scenario for other scripts to read</li>
+    <li><strong>Persist state</strong>: Encodes tier and setup flag as zero-width characters via a <code>[PERSISTENT MEMORY]</code> instruction block</li>
+</ol>
+
+<h3>Setup Mode</h3>
+
+<p>When <code>/maxtokens</code> is typed without arguments (or with an invalid argument), the script enters setup mode:</p>
+
+<ul>
+    <li>The scenario text is replaced with a tier selection menu</li>
+    <li>The personality is replaced with instructions for the AI to wait for user input</li>
+    <li>The setup flag is set to <code>1</code> in the zero-width state</li>
+    <li>On the next message, if the user types 1-5, the tier is set and setup mode exits</li>
+</ul>
+
+<h3>Normal Mode</h3>
+
+<p>When a tier is set and setup mode is inactive:</p>
+
+<ul>
+    <li>The budget block is appended to the existing scenario (not replacing it)</li>
+    <li>Any notification messages (tier changes, budget info) are appended as bracketed notes</li>
+    <li>The zero-width state stores the tier and <code>0</code> for normal mode</li>
+</ul>
+
+<h2 id="tier-reference">Tier Reference</h2>
+
+<table>
+    <tr><th>Tier</th><th>Context</th><th>Total Budget (10%)</th><th>Per-Script (5 lorebooks)</th><th>Models</th></tr>
+    <tr><td>1</td><td>8,000</td><td>800</td><td>160</td><td>LLM, WizardLM 13B, Kunoichi 7B</td></tr>
+    <tr><td>2</td><td>16,000</td><td>1,600</td><td>320</td><td>Tiefling 12B, Psyfighter 13B</td></tr>
+    <tr><td>3</td><td>32,000</td><td>3,200</td><td>640</td><td>Mistral Small 24B, Qwen 2.5/3.5 14B/32B</td></tr>
+    <tr><td>4</td><td>64,000</td><td>6,400</td><td>1,280</td><td>GPT-OSS 20B, SmolLM3-3B</td></tr>
+    <tr><td>5</td><td>128,000</td><td>12,800</td><td>2,560</td><td>Hermes 3, DeepSeek-R1, Command R+, Llama 4</td></tr>
+</table>
+
+<p>GitInTheVan caps at 128k context, so models supporting larger contexts are grouped into Tier 5.</p>
+
+<p>The model names are labels for convenience. The system only cares about which tier number the user selects.</p>
+
+<h2 id="token-budget-math">Token Budget Math</h2>
+
+<pre><code>Total Budget = Context Window * 0.10
+Per-Script Budget = Total Budget / Lorebook Count</code></pre>
+
+<p>The 10% ratio reserves 90% of context for chat history and the AI's response. This is conservative but prevents context bloat, especially on smaller models.</p>
+
+<p>At Tier 1 with 5 lorebooks: <code>8000 * 0.10 / 5 = 160 tokens per lorebook</code>. This is tight. Scripts operating at this level should use minimal bullet-point entries.</p>
+
+<p>At Tier 5 with 2 lorebooks: <code>128000 * 0.10 / 2 = 6400 tokens per lorebook</code>. Scripts at this level can be verbose.</p>
+
+<h3>Budget Block Format</h3>
+
+<p>The script injects this into the scenario:</p>
+
+<pre><code>[CONTEXT BUDGET: tier=3 context=32000 total=3200 scripts=5 per_script=640]</code></pre>
+
+<ul>
+    <li><code>tier</code> - Current tier (1-5)</li>
+    <li><code>context</code> - Context window size in tokens</li>
+    <li><code>total</code> - Total lorebook budget (context * 0.10)</li>
+    <li><code>scripts</code> - Number of active lorebooks</li>
+    <li><code>per_script</code> - Token allocation per lorebook</li>
+</ul>
+
+<h2 id="command-reference">Command Reference</h2>
+
+<h3><code>/maxtokens</code></h3>
+
+<p>Shows the tier selection menu. The scenario is replaced with a numbered list of all five tiers, showing per-script budgets for each.</p>
+
+<h3><code>/maxtokens [1-5]</code></h3>
+
+<p>Directly sets the tier without showing the menu.</p>
+
+<ul>
+    <li><code>/maxtokens 1</code> - Set to 8k</li>
+    <li><code>/maxtokens 3</code> - Set to 32k</li>
+    <li><code>/maxtokens 5</code> - Set to 128k+</li>
+</ul>
+
+<p>Invalid arguments (0, 6, words) trigger the menu instead.</p>
+
+<h3><code>/budget</code></h3>
+
+<p>Displays current budget information without changing the tier. Shows:</p>
+
+<ul>
+    <li>Current tier and label</li>
+    <li>Context window size</li>
+    <li>Total token budget</li>
+    <li>Per-script allocation</li>
+    <li>Number of active lorebooks</li>
+</ul>
+
+<h2 id="state-schema">State Schema</h2>
+
+<p>State is stored as 2 digits encoded in zero-width characters:</p>
+
+<pre><code>Digit 1: Tier (1-5)
+Digit 2: Setup Flag (0 = normal, 1 = menu shown)</code></pre>
+
+<p>Examples:</p>
+
+<ul>
+    <li><code>30</code> = Tier 3, normal mode</li>
+    <li><code>51</code> = Tier 5, waiting for menu selection</li>
+    <li><code>10</code> = Tier 1, normal mode</li>
+</ul>
+
+<h3>Zero-Width Encoding</h3>
+
+<p>Uses <code>\u2060\u2061</code> header and <code>\u2061\u2060</code> footer. This is distinct from:</p>
+
+<ul>
+    <li>Faction Management Template: uses <code>\u200D\u200D</code></li>
+</ul>
+
+<p>Both scripts can run simultaneously without state collision.</p>
+
+<p>The <code>[PERSISTENT MEMORY]</code> instruction block instructs the AI to reproduce the encoded state at the start and end of its response, preserving it across messages.</p>
+
+<h2 id="character-card-setup">Character Card Setup</h2>
+
+<h3>Required: Lorebook Count Tag</h3>
+
+<p>Add this to your character card scenario:</p>
+
+<pre><code>[Lorebook Count: 5]</code></pre>
+
+<p>The number should reflect all active lorebooks/scripts in the session, including the Context Control script itself.</p>
+
+<p>If this tag is missing, the script defaults to <code>1</code> lorebook, giving the entire budget to itself.</p>
+
+<h3>Optional: Budget Info in Scenario</h3>
+
+<p>You can include a note in the scenario explaining the budget system:</p>
+
+<pre><code>Token budgets are managed by the Context Control system. Use /maxtokens to set your context tier and /budget to check current allocation.</code></pre>
+
+<h2 id="integration-guide">Integration Guide for Other Scripts</h2>
+
+<p>Any script that wants to respect the token budget needs to:</p>
+
+<ol>
+    <li>Parse the <code>[CONTEXT BUDGET: ...]</code> block from the scenario</li>
+    <li>Extract the <code>per_script</code> value</li>
+    <li>Cap its output accordingly</li>
+</ol>
+
+<h3>Parsing Pattern</h3>
+
+<pre><code>function parseBudgetBlock(scenarioText) {
+    const match = scenarioText.match(
+        /\[CONTEXT\s+BUDGET:\s*tier=(\d+)\s+context=(\d+)\s+total=(\d+)\s+scripts=(\d+)\s+per_script=(\d+)\]/i
+    );
+    if (match) {
+        return {
+            tier: parseInt(match[1]),
+            contextSize: parseInt(match[2]),
+            totalBudget: parseInt(match[3]),
+            scriptCount: parseInt(match[4]),
+            perScript: parseInt(match[5])
+        };
+    }
+    return null;
+}</code></pre>
+
+<h3>Fallback Pattern</h3>
+
+<p>If the budget block is not found, scripts should fall back to a conservative default:</p>
+
+<pre><code>const budgetInfo = parseBudgetBlock(context.character.scenario);
+const myBudget = budgetInfo ? budgetInfo.perScript : 160; // 160 = Tier 1 / 5 lorebooks</code></pre>
+
+<p>The <strong>Context Control Awareness Template</strong> provides a complete, working example of this integration.</p>
+
+<h2 id="ai-assisted-setup">For Non-Programmers: AI-Assisted Setup</h2>
+
+<p>Give this prompt to an AI assistant along with your scenario details:</p>
+
+<pre><code>I have a Context Control Template for GitInTheVan that manages token budgets
+across multiple lorebooks. Help me set it up.
+
+Number of active lorebooks/scripts: [YOUR NUMBER]
+Target model: [YOUR MODEL or "I'll select from the menu"]
+
+Please:
+1. Tell me what to add to my character card scenario
+2. Confirm the [Lorebook Count: N] tag is correct
+3. Explain which tier I should select</code></pre>
+
+<h2 id="safe-removal">Safe Removal</h2>
+
+<p>To remove the Context Control script:</p>
+
+<ol>
+    <li>Delete the lorebook entry from your character card</li>
+    <li>Remove any <code>[Lorebook Count: N]</code> tags from the scenario</li>
+    <li>Other scripts that read the budget block will fall back to their default budgets</li>
+</ol>
+
+<p>If other scripts depend on the budget block, they will continue to function but will use their hardcoded default token limits instead of dynamic allocation.</p>
+
+<h2 id="troubleshooting">Troubleshooting</h2>
+
+<p><strong>The menu doesn't appear when I type /maxtokens</strong></p>
+<ul>
+    <li>Check that the script is set to always activate (no keyword filter or keyword set to <code>*</code>)</li>
+    <li>Verify the script is not behind a keyword gate in the lorebook settings</li>
+</ul>
+
+<p><strong>The tier selection doesn't persist</strong></p>
+<ul>
+    <li>The AI must reproduce the zero-width state characters in its response. The <code>[PERSISTENT MEMORY]</code> block handles this</li>
+    <li>If the AI consistently fails to reproduce the state, the script falls back to <code>DEFAULT_TIER</code> (Tier 1) on each run</li>
+    <li>Ensure no other script is stripping the <code>[PERSISTENT MEMORY]</code> block</li>
+</ul>
+
+<p><strong>Budget seems wrong</strong></p>
+<ul>
+    <li>Verify <code>[Lorebook Count: N]</code> is in the scenario with the correct number</li>
+    <li>Use <code>/budget</code> to display the current calculation</li>
+    <li>Check that no other script is modifying the scenario before this one runs</li>
+</ul>
+
+<p><strong>Other scripts aren't reading the budget</strong></p>
+<ul>
+    <li>Confirm the <code>[CONTEXT BUDGET: ...]</code> block is being appended (use <code>/budget</code> to verify)</li>
+    <li>Check that other scripts are using the correct regex pattern from the Integration Guide</li>
+    <li>Ensure the Context Control script runs before other scripts that read the budget</li>
+</ul>
+
+<p><strong>State collision with other zero-width scripts</strong></p>
+<ul>
+    <li>This script uses <code>\u2060\u2061</code> header/footer, which does not conflict with the Faction Management template (<code>\u200D\u200D</code>)</li>
+    <li>If you have custom zero-width scripts, verify they use different header/footer pairs</li>
+</ul>
+
+<div class="footer">
+    <p>Part of the JanitorScripts template collection. Companion to the Context Control Awareness Template.</p>
+</div>
+
+</body>
+</html>
