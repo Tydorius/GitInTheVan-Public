@@ -1,6 +1,6 @@
 # GitInTheVan Cantrip Templates
 
-A collection of Cantrip templates for GitInTheVan's enhanced lorebook system. Each template addresses a different use case. Pick the one that fits your scenario, or combine ideas from several.
+A collection of Cantrip templates for GitInTheVan's enhanced lorebook system. Each template addresses a different use case. Pick the one that fits your scenario, or combine ideas from several. Note that these are converted from my JAI Script templates. Some of their features (Persistent memory, context management, etc) may not be necessary within GitInTheVan due to native context control I'm building into the platform.
 
 ## Templates
 
