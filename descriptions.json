@@ -1,8 +1,8 @@
 {
-  "pack_name": "GitInTheVan Public Cantrips",
+  "pack_name": "GitInTheVan Public Pack",
   "pack_author": "Tydorius",
-  "pack_version": "1.0.0",
-  "pack_description": "A collection of cantrips for roleplay and creative writing with GitInTheVan. Includes dice rolling, context management, adaptive lorebooks, multi-character support, faction management, persistent memory, and progressive disclosure systems.",
+  "pack_version": "1.1.0",
+  "pack_description": "A collection of cantrips, scenario rules, and resources for roleplay and creative writing with GitInTheVan. Includes dice rolling, context management, adaptive lorebooks, multi-character support, faction management, persistent memory, progressive disclosure systems, and scenario summarization rules.",
   "pack_url": "",
   "files": [
     {
@@ -212,6 +212,28 @@
         "progressive"
       ],
       "min_gitv_version": "0.5.0"
+    },
+    {
+      "path": "scenario_rules/pre-scenario-compressor.json",
+      "type": "scenario_rule",
+      "name": "Pre-Scenario Compressor",
+      "description": "Summarizes large author-provided scenarios before lorebooks and cantrips are applied. Triggers when the incoming system message exceeds 3,000 tokens.",
+      "author": "GitInTheVan",
+      "version": "1.0.0",
+      "updated": "2026-06-28T00:00:00Z",
+      "tags": ["summarization", "scenario", "pre"],
+      "min_gitv_version": "0.14.4"
+    },
+    {
+      "path": "scenario_rules/post-scenario-compressor.json",
+      "type": "scenario_rule",
+      "name": "Post-Scenario Compressor",
+      "description": "Summarizes the final system message after all lorebooks, cantrips, and skills have been applied. Triggers when the final system message exceeds 6,000 tokens.",
+      "author": "GitInTheVan",
+      "version": "1.0.0",
+      "updated": "2026-06-28T00:00:00Z",
+      "tags": ["summarization", "scenario", "post"],
+      "min_gitv_version": "0.14.4"
     }
   ]
 }
