@@ -1,0 +1,11 @@
+{
+  "name": "Pre-Scenario Compressor",
+  "description": "Summarizes large author-provided scenarios before lorebooks and cantrips are applied. Uses a fast model for efficiency. Triggers when the incoming system message exceeds 3,000 tokens.",
+  "version": "1.0.0",
+  "author": "GitInTheVan",
+  "token_threshold": 3000,
+  "fire_position": "pre",
+  "model": "",
+  "prompt": "",
+  "is_active": false
+}

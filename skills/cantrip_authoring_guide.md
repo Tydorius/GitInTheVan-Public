@@ -1,28 +1,36 @@
-GitInTheVan Script Development
+GitInTheVan Cantrip Development
 
-This skill provides guidelines for developing Scripts (enhanced lorebooks) for the GitInTheVan platform.
+This skill provides guidelines for developing Cantrips (JavaScript lorebooks) for the GitInTheVan platform.
 
 ---
 
 ## Platform Overview
 
-GitInTheVan Scripts are JavaScript code embedded in character cards as special lorebook entries. They execute every time the AI generates a response, reading chat state and dynamically modifying character context to create responsive, stateful roleplay scenarios.
+Cantrips are sandboxed JavaScript snippets that run within GitInTheVan's pipeline at configurable positions. They read chat state, modify character context, access persistent database-backed storage, and optionally modify the LLM's response or answer tool calls. They are compatible with existing JanitorAI scripts and add GitInTheVan-specific extensions.
 
-Scripts are NOT traditional applications. They are middleware that runs within GitInTheVan's system, reading from the chat context and appending to the character context. Scripts do not persist, and are run fresh with each messaage submission. Scripts can not be guaranteed to execute in a specific order. Scripts do not have a built-in mechanism for transferring data and variables between themselves or for making information persist over time. As such, various mechanisms must be used to ensure data persistence.
+Cantrips are middleware, not full applications. They run in a Deno subprocess sandbox with no network, filesystem, or environment access. A cantrip executes once per pipeline position per request. Each cantrip can run at multiple positions independently (Pre-Driver, Driver-Callable, Pre-Navigator, Post-Navigator).
 
-Even with these mechanisms, data persistence relies on the LLM's obedience because it must include the correct data in its output.
+### Persistence Model
+
+GitInTheVan uses a database-backed persistence model. State survives across executions and conversation cycles without relying on zero-width character encoding or the LLM's obedience:
+
+- **`context.chat_data`** — per-chat key/value store that survives across cycles within a conversation
+- **`context.memory`** — persistent memory store, also writable by the LLM via `<memstore>` tags
+- **Summaries** — long conversations are compressed by the Summarizer LLM and cached per conversation
+
+For JanitorAI script compatibility, zero-width character and visible-flag techniques still work, but database-backed storage is the recommended approach for new cantrips.
 
 ## Execution Environment
 
-Scripts run in GitInTheVan's sandboxed JavaScript environment. The environment supports ES6+ natively.
+Cantrips run in GitInTheVan's sandboxed Deno environment. The environment supports ES6+ natively.
 
-The `"use worker";` directive at the top of a Script file enables the full ES6+ worker context, which lifts legacy execution limits on loops and enables modern JavaScript features. If a Script uses heavy iteration or complex logic, add this directive as the first line:
+The `"use worker";` directive at the top of a cantrip enables the full ES6+ worker context, which lifts legacy execution limits on loops and enables modern JavaScript features. If a cantrip uses heavy iteration or complex logic, add this directive as the first line:
 
 ```javascript
 "use worker";
 ```
 
-Scripts execute **once per AI response generation**. They are stateless between executions. Any state that needs to persist must be encoded into the AI's output (via zero-width characters, visible flags, or stat blocks) and parsed back on the next execution.
+Cantrips are stateless between executions at the code level, but persistence is handled by GitInTheVan's database via `context.chat_data` and `context.memory`. There is no need to encode state into the LLM's output and parse it back.
 
 ## Core API
 
@@ -51,7 +59,7 @@ const charFirstMessage = context.character.first_message; // String: first messa
 
 ### Write Properties (Append-Only)
 
-These are the ONLY fields that affect the AI's behavior. All others the Script can read but modifications are NOT passed to the model.
+These are the ONLY character fields that affect the AI's behavior. All others the cantrip can read but modifications are NOT passed to the model.
 
 ```javascript
 context.character.personality += ", additional trait";           // Behavioral modifiers
@@ -61,7 +69,81 @@ context.character.example_dialogs += "\n<START>\n{{user}}: ..."; // Example conv
 
 **CRITICAL**: `personality`, `example_dialogs`, and `scenario` are typically **append-only**. Direct assignment (`=`) overwrites the character's foundational prompt, causing catastrophic output failure. Always use `+=` unless you are working in a specific situation where you MUST overwrite the original logic.
 
-**CRITICAL**: Only `personality`, `scenario`, and `example_dialogs` are passed to the LLM. All other context properties are available to the Script but modifications are ignored by the model.
+**CRITICAL**: Only `personality`, `scenario`, and `example_dialogs` are passed to the LLM. All other context properties are available to the cantrip but modifications are ignored by the model.
+
+### Persistent Storage (GitInTheVan Extension)
+
+GitInTheVan provides database-backed key/value stores that survive across executions and conversation cycles. This replaces the need for zero-width character encoding.
+
+**Per-chat state (`context.chat_data`)** — scoped to the current conversation, persists across cycles:
+
+```javascript
+// Read a value (returns undefined if not set)
+let day = context.chat_data.get('day') || 1;
+
+// Store a value
+context.chat_data.set('day', day + 1);
+
+// List and delete
+const keys = context.chat_data.keys();
+context.chat_data.delete('temp_value');
+```
+
+**Persistent memory (`context.memory`)** — shared with the LLM, also writable via `<memstore>` tags in responses:
+
+```javascript
+const location = context.memory.get('location');
+context.memory.set('weather', 'stormy');
+const allKeys = context.memory.keys();
+context.memory.delete('old_state');
+```
+
+The LLM can also write to memory by including tags in its response: `<memstore key="mood">happy</memstore>`. GitInTheVan extracts these, stores them, and strips them from the response before the client sees it. On the next request, stored memories are injected as a `[PERSISTENT MEMORY]` block.
+
+### Context Budget (GitInTheVan Extension)
+
+When Context Budgeting is enabled in Settings, each cantrip receives a proportional share of the injection budget based on its **Budget Weight** field:
+
+```javascript
+const budget = context.budget;
+// budget = {
+//   total: 819,           // total injection budget in tokens
+//   remaining: 655,       // tokens remaining after prior cantrips
+//   weight: 2.0,          // this cantrip's configured weight
+//   share: 327,           // tokens allocated to this cantrip
+//   detail_level: "full"  // "full" | "summary" | "bullets"
+// }
+```
+
+Use `detail_level` to scale output detail. `context.budget` is `undefined` when budgeting is disabled — guard for it.
+
+### Response Modification (Pre/Post-Navigator)
+
+Cantrips at the Pre-Navigator or Post-Navigator position can read and modify the Driver's response via `context.response`:
+
+```javascript
+if (context.response) {
+    context.response.content = context.response.content
+        .replace(/\n{3,}/g, '\n\n')           // collapse whitespace
+        .replaceAll("badword", "***");         // censor
+}
+```
+
+### Tool Calls (Driver-Callable)
+
+Cantrips at the Driver-Callable position are invoked by the writing LLM via `<call:tool_name arg="value">` tags. Read arguments from `context.tool_call` and write the result to `context.tool_result`:
+
+```javascript
+if (context.tool_call) {
+    const sides = parseInt(context.tool_call.args.sides) || 6;
+    const count = parseInt(context.tool_call.args.count) || 1;
+    const rolls = Array.from({length: count}, () =>
+        Math.floor(Math.random() * sides) + 1);
+    context.tool_result = `${count}d${sides}: [${rolls.join(', ')}] = ${rolls.reduce((a, b) => a + b, 0)}`;
+}
+```
+
+Each tool call decrements the configured turn budget. When turns reach 0, the tool notification stops. The cantrip's **LLM Instructions** field is shown to the LLM describing how to call the tool.
 
 ### Context Guards
 
@@ -71,6 +153,7 @@ Always guard against undefined context properties to prevent silent crashes:
 context.character = context.character || {};
 context.character.personality = context.character.personality || "";
 context.character.scenario = context.character.scenario || "";
+context.chat_data = context.chat_data || { get: () => undefined, set: () => {} };
 ```
 
 ## JavaScript Feature Support
@@ -217,7 +300,9 @@ for (let i = startIdx; i < messages.length; i++) {
 const normalizedWindow = windowText.toLowerCase();
 ```
 
-### Zero-Width State Persistence
+### Zero-Width State Persistence (Legacy / JanitorAI Compat)
+
+**Note:** GitInTheVan provides database-backed persistence via `context.chat_data` and `context.memory` (see above). Zero-width encoding is retained for JanitorAI script compatibility but is no longer the recommended approach for new cantrips.
 
 Encode state into invisible Unicode characters that the AI reproduces in its output, allowing state to persist across Script executions:
 
@@ -404,6 +489,32 @@ characters.forEach(char => {
 
 Ensure every personality statement includes the character's name to prevent LLM confusion about who the statement applies to.
 
+## Pipeline Positions and Maps
+
+### Pipeline Positions
+
+Each cantrip can run at one or more of four positions in the request pipeline. Check the boxes independently — a single cantrip can run at multiple positions:
+
+| Position | When | Context Available |
+|----------|------|-------------------|
+| **Pre-Driver** | Before the writing LLM | `context.character`, `context.chat_data`, `context.memory`, `context.budget` |
+| **Driver-Callable** | LLM invokes via `<call:tool_name>` | `context.tool_call`, `context.tool_result`, `context.chat_data` |
+| **Pre-Navigator** | After Driver responds, before verification | `context.response.content`, `context.chat_data` |
+| **Post-Navigator** | After verification completes | `context.response.content`, `context.chat_data` |
+
+Pre-Driver is enabled by default. A cantrip running at multiple positions can branch on `context.response` (present at Pre/Post-Navigator, absent at Pre-Driver) to handle each position differently.
+
+### Maps Integration
+
+Maps chain multiple LLM stages into a single request. A cantrip attached to a map stage runs at that stage's position within the chain. Two attachment modes control how long injections persist:
+
+- **Stage-only** (default): the cantrip's injection is stripped after its stage completes
+- **Sticky**: the injection persists through all subsequent stages
+
+`context.chat_data` and `context.memory` are shared across all stages in a map — state written in an early stage is readable in later stages. This lets a first stage record facts (e.g., dice results) that a later stage reads and incorporates.
+
+When a cantrip is used both standalone and inside a map, write it defensively: guard for `context.response` and `context.tool_call` so the same code works regardless of position.
+
 ## Template Reference
 
 Each template addresses a specific use case. Select the appropriate one or combine patterns from multiple.
@@ -497,7 +608,7 @@ if (DEBUG_MODE) {
 
 ### Debug Panel
 
-GitInTheVan's Test Chat has a "Show Debug Panel" option at the bottom. Use the "Changes" tab to see what the Script injected. `console.log()` output also appears in the debug panel.
+GitInTheVan's Cantrip Tester (Cantrips page > Test Panel) runs a cantrip against sample context without forwarding to an LLM. It shows Scenario Output, Personality Output, Debug Logs (`console.log()` output), and the resulting `context.chat_data` state. Use it to verify injections and persistent state before going live.
 
 ### Common Issues
 
@@ -529,7 +640,8 @@ GitInTheVan's Test Chat has a "Show Debug Panel" option at the bottom. Use the "
 - Try adding `"use worker";` as the first line
 
 **State not persisting**:
-- For zero-width: verify unique header/footer markers, check search depth
+- For `context.chat_data` / `context.memory`: verify you are calling `.set()` and that the conversation hash resolves consistently (editing the last response can change the conversation identity)
+- For legacy zero-width: verify unique header/footer markers, check search depth
 - For flags: verify character card instructions include flag reproduction
 - Check that injection instructions are being appended to scenario
 

@@ -1,0 +1,11 @@
+{
+  "name": "Post-Scenario Compressor",
+  "description": "Summarizes the final system message after all lorebooks, cantrips, and skills have been applied. Uses a more capable model for complex compression. Triggers when the final system message exceeds 6,000 tokens.",
+  "version": "1.0.0",
+  "author": "GitInTheVan",
+  "token_threshold": 6000,
+  "fire_position": "post",
+  "model": "",
+  "prompt": "Compress the following system prompt while retaining ALL critical information. This includes character definitions, world-building details, behavioral instructions, and writing guidelines. Merge redundant sections. Use concise language. Prioritize information that affects character behavior and scene setting. Output only the compressed text.",
+  "is_active": false
+}
