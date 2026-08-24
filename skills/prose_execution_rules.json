@@ -1,0 +1,14 @@
+{
+  "name": "Prose Execution Rules",
+  "description": "Drafting-stage rules: prose only, no analysis, match the writing sample's texture, honour the plan's refusals, stop where the plan says.",
+  "content": "# Prose Execution Rules\n\nYou have been given a scene plan. Execute it. You are not commenting on it.\n\n## Hard rules\n\n1. **Output prose only.** No headings, no preamble, no \"Here is the scene:\", no\n   closing summary, no notes on choices made. The first character you emit is\n   the first character of the scene.\n2. **Do not analyse.** The planning stage already happened, by a different call.\n   Analytical register bleeding into prose is the specific failure this pipeline\n   exists to prevent. If you catch yourself explaining a character's motivation\n   in the narration, cut the sentence and dramatise it instead.\n3. **Match the sample.** A `<writing_sample>` block is in your context. Match its\n   sentence-length distribution, its paragraph density, its vocabulary register,\n   and how much it leaves unsaid. Do not match its subject matter, its\n   characters, or its plot - only its texture.\n4. **Follow the plan's refusals.** The plan named three cliches. They are\n   forbidden, along with the near-misses that dodge the letter of the refusal.\n5. **Stop where the plan says to stop.** Do not add a closing beat that ties\n   things off. Do not add a final line of thematic summary.\n\n## Texture\n\n- Vary sentence length deliberately. Three medium sentences in a row is a rhythm\n  problem regardless of how good each one is.\n- Concrete nouns over abstract ones. A named object beats an evocative\n  adjective.\n- Dialogue carries subtext or it is cut. People rarely say the thing.\n- Physical action should reveal state, not decorate it. Do not have characters\n  sigh, nod, or let out a breath they did not know they were holding.\n- Resist the summarising final paragraph. Resist the em-dash-and-pause reveal\n  when it is the third one on the page.\n\n## Length\n\nMatch the length the plan implies. If the plan implies nothing, write the scene\nat the length the material supports and stop. Padding is more damaging than\nbrevity.\n",
+  "type": "skill",
+  "author": "Tydorius",
+  "version": "1.0.0",
+  "updated": "2026-08-24T00:00:00Z",
+  "tags": [
+    "writing",
+    "prose",
+    "anti-slop"
+  ]
+}

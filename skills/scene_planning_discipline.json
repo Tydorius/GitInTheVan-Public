@@ -1,0 +1,14 @@
+{
+  "name": "Scene Planning Discipline",
+  "description": "Planning-stage rules: name three scene-specific cliches to refuse, then plan want/obstacle, subtext, sensory register, shape, and what stays unresolved.",
+  "content": "# Scene Planning Discipline\n\nYou are planning a scene, not writing it. No prose leaves this stage.\n\n## 1. Name the defaults before you avoid them\n\nBegin by writing the heading `Cliches I am refusing:` and list exactly three\nthings a competent-but-unremarkable model would produce for THIS scene. Be\nspecific to the material in front of you, not generic. \"A tapestry metaphor\" is\ngeneric. \"Opening on the character staring out a rain-streaked window while\nrecalling the argument\" is specific.\n\nFor each one, write a single line naming what you will do instead.\n\nThis step matters more than it looks. A ban list alone (\"do not write 'delve'\")\nmakes prose stilted, because the model spends its attention dodging a word. A\nnamed alternative gives it somewhere to go.\n\n## 2. Then plan, under these headings\n\n**Want / obstacle** - What does each present character want in this scene, in\none clause? What is physically or socially in the way? If a character wants\nnothing, cut them or give them something.\n\n**Subtext** - For each significant line of dialogue you anticipate: what is said\nversus what is meant. If those are the same for every line, the scene is inert.\nSay so and fix it here.\n\n**Sensory register** - Pick two or three senses this scene will actually use.\nNot five. Note the specific, unglamorous details available in this setting -\nwhat it smells like, what the floor sounds like, what someone is doing with\ntheir hands. Concrete nouns, not atmosphere words.\n\n**Shape** - Where does the scene start, what turns it, where does it stop? Name\nthe last beat explicitly. Prefer stopping one beat earlier than feels complete.\n\n**What stays unresolved** - Name at least one thing this scene deliberately does\nnot settle. Neat resolution is the single most recognisable tell of machine\nprose.\n\n## 3. Constraints\n\n- Output the plan only. No sample sentences, no \"for example, one might write...\"\n- Keep it under 400 words. This is a brief, not an essay.\n- Do not restate the user's prompt back to them.\n",
+  "type": "skill",
+  "author": "Tydorius",
+  "version": "1.0.0",
+  "updated": "2026-08-24T00:00:00Z",
+  "tags": [
+    "writing",
+    "planning",
+    "anti-slop"
+  ]
+}

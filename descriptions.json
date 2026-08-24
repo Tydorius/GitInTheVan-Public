@@ -1,8 +1,8 @@
 {
   "pack_name": "GitInTheVan Public Pack",
   "pack_author": "Tydorius",
-  "pack_version": "1.1.0",
-  "pack_description": "A collection of cantrips, scenario rules, and resources for roleplay and creative writing with GitInTheVan. Includes dice rolling, context management, adaptive lorebooks, multi-character support, faction management, persistent memory, progressive disclosure systems, and scenario summarization rules.",
+  "pack_version": "1.2.0",
+  "pack_description": "A collection of cantrips, maps, skills, scenario rules, and resources for roleplay and creative writing with GitInTheVan. Includes dice rolling, context management, adaptive lorebooks, multi-character support, faction management, persistent memory, progressive disclosure systems, scenario summarization rules, and a multi-stage creative-writing pipeline.",
   "pack_url": "",
   "files": [
     {
@@ -221,7 +221,11 @@
       "author": "GitInTheVan",
       "version": "1.0.0",
       "updated": "2026-06-28T00:00:00Z",
-      "tags": ["summarization", "scenario", "pre"],
+      "tags": [
+        "summarization",
+        "scenario",
+        "pre"
+      ],
       "min_gitv_version": "0.14.4"
     },
     {
@@ -232,8 +236,104 @@
       "author": "GitInTheVan",
       "version": "1.0.0",
       "updated": "2026-06-28T00:00:00Z",
-      "tags": ["summarization", "scenario", "post"],
+      "tags": [
+        "summarization",
+        "scenario",
+        "post"
+      ],
       "min_gitv_version": "0.14.4"
+    },
+    {
+      "path": "maps/overthink_writing_pipeline.json",
+      "type": "map",
+      "name": "Overthink Writing Pipeline",
+      "description": "Four-stage creative-writing pipeline (Plan, Draft, Critique, Polish). Each stage is a separate call routed by endpoint tag, so a reasoning model can plan while a different model writes the prose. Ships with anti-LLMism skills and a style-anchor sample. Requires max_map_stages 4.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "map",
+        "writing",
+        "anti-slop",
+        "multi-stage"
+      ],
+      "min_gitv_version": "0.20.3"
+    },
+    {
+      "path": "maps/overthink_writing_pipeline_3stage.json",
+      "type": "map",
+      "name": "Overthink Writing Pipeline (3-Stage)",
+      "description": "Three-stage variant of the Overthink Writing Pipeline that runs at the stock max_map_stages of 3. Critique and polish are merged into one editor stage.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "map",
+        "writing",
+        "anti-slop",
+        "multi-stage"
+      ],
+      "min_gitv_version": "0.20.3"
+    },
+    {
+      "path": "skills/scene_planning_discipline.json",
+      "type": "skill",
+      "name": "Scene Planning Discipline",
+      "description": "Planning-stage rules: name three scene-specific cliches to refuse, then plan want/obstacle, subtext, sensory register, shape, and what stays unresolved. Outputs a brief, never prose.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "writing",
+        "planning",
+        "anti-slop"
+      ],
+      "min_gitv_version": "0.15.0"
+    },
+    {
+      "path": "skills/prose_execution_rules.json",
+      "type": "skill",
+      "name": "Prose Execution Rules",
+      "description": "Drafting-stage rules: prose only, no analysis, match the writing sample's texture, honour the plan's refusals, stop where the plan says.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "writing",
+        "prose",
+        "anti-slop"
+      ],
+      "min_gitv_version": "0.15.0"
+    },
+    {
+      "path": "skills/anti_llmism_checklist.json",
+      "type": "skill",
+      "name": "LLMism Checklist",
+      "description": "Line-editing checklist for machine-prose tells: vocabulary, structural, emotional, and resolution tics. Produces numbered line edits, never a rewrite.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "writing",
+        "editing",
+        "anti-slop"
+      ],
+      "min_gitv_version": "0.15.0"
+    },
+    {
+      "path": "skills/style_anchor_sample.json",
+      "type": "skill",
+      "name": "Style Anchor",
+      "description": "PLACEHOLDER writing sample. Replace with 800-1500 words of prose whose texture you want the drafter to match; it ships empty on purpose.",
+      "author": "Tydorius",
+      "version": "1.0.0",
+      "updated": "2026-08-24T00:00:00Z",
+      "tags": [
+        "writing",
+        "style",
+        "sample"
+      ],
+      "min_gitv_version": "0.15.0"
     }
   ]
 }

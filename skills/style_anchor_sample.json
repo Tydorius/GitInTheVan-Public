@@ -1,0 +1,14 @@
+{
+  "name": "Style Anchor",
+  "description": "PLACEHOLDER - replace with 800-1500 words of prose whose texture you want the drafter to match.",
+  "content": "<<< REPLACE THIS ENTIRE FILE'S CONTENT BEFORE USE >>>\n\nThis is a placeholder. It is the single highest-leverage setting in this\npipeline and it ships empty on purpose - an anchor written by a language model\nwould anchor the pipeline to exactly the register it is built to escape.\n\nPaste roughly 800-1500 words of prose whose texture you want. Your own writing,\nor a passage from an author you are trying to sound less unlike. It does not\nneed to relate to what you are writing; the drafting stage is instructed to\nmatch texture only - sentence rhythm, paragraph density, vocabulary register,\nhow much is left unsaid - and to ignore subject matter, characters and plot.\n\nPractical notes:\n\n- Prose, not dialogue-only, unless dialogue rhythm is specifically what you\n  want copied.\n- One coherent voice. Mixing three authors averages them out and you get the\n  mean back, which is the problem you started with.\n- Longer is not better past about 1500 words; you are paying for it in context\n  on every stage that carries it.\n- Small models are stylistic chameleons - this works far better than it has any\n  right to. If the output still reads flat, change this before you change\n  anything else.\n\n<<< REPLACE EVERYTHING ABOVE >>>\n",
+  "type": "sample",
+  "author": "Tydorius",
+  "version": "1.0.0",
+  "updated": "2026-08-24T00:00:00Z",
+  "tags": [
+    "writing",
+    "style",
+    "sample"
+  ]
+}
