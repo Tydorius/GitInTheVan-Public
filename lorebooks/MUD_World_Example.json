@@ -1,0 +1,103 @@
+{
+  "name": "MUD World Example",
+  "description": "Compact 8-cell spatial world (6 overworld cells + 2 interior tavern sub-grid cells) for the MUD World Engine cantrip. Import inactive and link via lorebook_reads.",
+  "is_active": false,
+  "entries": [
+    {
+      "name": "overworld:a1",
+      "keys": ["overworld:a1", "Village Square"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:a1\",\"map\":\"overworld\",\"x\":0,\"y\":0,\"name\":\"Village Square\",\"desc\":{\"day\":\"Cobblestone plaza around a mossy dry fountain. Carts creak past the Rusty Lantern tavern.\",\"night\":\"Iron lanterns sway in the mist; shutters are barred save for the warm glow of the tavern door.\"},\"exits\":{\"E\":\"overworld:b1\",\"S\":\"overworld:a2\",\"IN\":\"tavern_f1:a1\"},\"objects\":{\"fountain\":\"Dry stone basin with weathered runes.\",\"notice_board\":\"Pinned with faded bounty notices.\"},\"npcs\":{\"bren\":{\"name\":\"Bren\",\"role\":\"Watchman\",\"desc\":\"Leans on a halberd, watching the square.\"}},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "overworld:b1",
+      "keys": ["overworld:b1", "Market Crossroad"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:b1\",\"map\":\"overworld\",\"x\":1,\"y\":0,\"name\":\"Market Crossroad\",\"desc\":{\"day\":\"Canvas stalls crowd the crossroads, smelling of roasted chestnuts, leather, and river reeds.\",\"night\":\"Empty wooden frames cast skeletal shadows under a pale moon; stray cats prowl the cobbles.\"},\"exits\":{\"W\":\"overworld:a1\",\"E\":\"overworld:c1\",\"S\":\"overworld:b2\"},\"objects\":{\"milestone\":\"Chipped obelisk marking leagues to the capital.\",\"spice_cart\":\"Locked oak wagon draped in tarp.\"},\"npcs\":{\"mira\":{\"name\":\"Mira\",\"role\":\"Tinker\",\"desc\":\"Polishes brass compasses on a velvet cloth.\"}},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "overworld:c1",
+      "keys": ["overworld:c1", "Old Bridge"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:c1\",\"map\":\"overworld\",\"x\":2,\"y\":0,\"name\":\"Old Bridge\",\"desc\":{\"day\":\"An arched stone span over rushing grey water. Moss clings to the parapets.\",\"night\":\"Dark water churns below the arch; fog curls around the bridge posts.\"},\"exits\":{\"W\":\"overworld:b1\",\"S\":\"overworld:c2\"},\"objects\":{\"toll_booth\":\"Boarded timber hut with a rusted lockbox.\",\"lantern_post\":\"Bent iron post swaying over the river.\"},\"npcs\":{},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "overworld:a2",
+      "keys": ["overworld:a2", "Whispering Woods"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:a2\",\"map\":\"overworld\",\"x\":0,\"y\":1,\"name\":\"Whispering Woods\",\"desc\":{\"day\":\"Tall pines filter the sun into green shafts; needles muffle every footstep.\",\"night\":\"Pitch-black boughs creak overhead while pale moths drift between the trunks.\"},\"exits\":{\"N\":\"overworld:a1\",\"E\":\"overworld:b2\"},\"objects\":{\"hollow_oak\":\"Ancient split trunk stuffed with dry leaves.\",\"waystone\":\"Tilted granite marker half-buried in fern.\"},\"npcs\":{},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "overworld:b2",
+      "keys": ["overworld:b2", "Watchtower Ruins"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:b2\",\"map\":\"overworld\",\"x\":1,\"y\":1,\"name\":\"Watchtower Ruins\",\"desc\":{\"day\":\"Collapsed limestone walls on a windy ridge overlooking the valley and woods.\",\"night\":\"Starlight spills through the roofless tower; cold wind whistles through arrow slits.\"},\"exits\":{\"N\":\"overworld:b1\",\"W\":\"overworld:a2\",\"E\":\"overworld:c2\"},\"objects\":{\"firepit\":\"Ring of blackened stones with cold ash.\",\"spiral_stair\":\"Broken steps leading nowhere.\"},\"npcs\":{\"vesper\":{\"name\":\"Vesper\",\"role\":\"Scout\",\"desc\":\"Cloaked figure scanning the ridge with a spyglass.\"}},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "overworld:c2",
+      "keys": ["overworld:c2", "Sunken Monolith"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"overworld:c2\",\"map\":\"overworld\",\"x\":2,\"y\":1,\"name\":\"Sunken Monolith\",\"desc\":{\"day\":\"A marshy clearing where a basalt pillar leans out of still, amber-tinted water.\",\"night\":\"Faint blue veins pulse along the wet basalt beneath a mirror-still pool.\"},\"exits\":{\"N\":\"overworld:c1\",\"W\":\"overworld:b2\"},\"objects\":{\"monolith\":\"Carved basalt obelisk warm to the touch.\",\"reed_skiff\":\"Half-submerged wooden punt tied to a stump.\"},\"npcs\":{},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "tavern_f1:a1",
+      "keys": ["tavern_f1:a1", "The Rusty Lantern Taproom"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"tavern_f1:a1\",\"map\":\"tavern_f1\",\"x\":0,\"y\":0,\"name\":\"The Rusty Lantern Taproom\",\"desc\":{\"day\":\"Low-beamed common room smelling of hearth smoke, spilled ale, and wet wool.\",\"night\":\"Crowded hearthside benches, clinking tankards, and a fiddle tune from the corner.\"},\"exits\":{\"OUT\":\"overworld:a1\",\"E\":\"tavern_f1:a2\"},\"objects\":{\"oak_bar\":\"Scarred counter lined with pewter mugs.\",\"hearth\":\"Crackling stone fireplace.\"},\"npcs\":{\"garrett\":{\"name\":\"Garrett\",\"role\":\"Innkeeper\",\"desc\":\"Wipes glasses behind the oak bar with one keen eye on the door.\"}},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    },
+    {
+      "name": "tavern_f1:a2",
+      "keys": ["tavern_f1:a2", "Tavern Back Cellar"],
+      "secondary_keys": [],
+      "content": "{\"id\":\"tavern_f1:a2\",\"map\":\"tavern_f1\",\"x\":1,\"y\":0,\"name\":\"Tavern Back Cellar\",\"desc\":{\"day\":\"Cool stone vault stacked with cider casks, pickled jars, and tallow candles.\",\"night\":\"Damp air and deep shadows between the barrels; floorboards creak overhead.\"},\"exits\":{\"W\":\"tavern_f1:a1\"},\"objects\":{\"cider_cask\":\"Iron-hooped barrel with a brass spigot.\",\"loose_flagstone\":\"Slightly raised stone near the north wall.\"},\"npcs\":{},\"images\":{\"day\":\"\",\"night\":\"\"}}",
+      "position": "before_last_message",
+      "insertion_order": 10,
+      "is_constant": false,
+      "is_selective": false,
+      "is_disabled": false,
+      "character_limit": 0
+    }
+  ]
+}

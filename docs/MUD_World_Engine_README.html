@@ -1,0 +1,39 @@
+<h1>MUD World Engine</h1>
+<p>A portable, GitInTheVan <code>0.42.1</code>-idiomatic spatial world engine using the <strong>Static Base Lorebook + Sparse <code>chat_data</code> Delta Overlay</strong> pattern.</p>
+<h2>Architecture</h2>
+<ul>
+<li><strong>Static Base Lorebook (<code>lorebooks/MUD_World_Example.json</code>)</strong> — Stores immutable room definitions as compact JSON entries (<code>overworld:a1</code>..<code>c2</code>, plus interior sub-grid <code>tavern_f1:a1</code>..<code>a2</code>). Imported <strong>inactive</strong> so GitInTheVan does not keyword-dump the whole map into context.</li>
+<li><strong>Sparse <code>chat_data</code> Delta Overlay (<code>cantrips/MUD_World_Engine.json</code>)</strong> — Tracks only what changed in the current chat:
+<ul>
+<li>Global state: <code>mud_loc</code>, <code>mud_prev_loc</code>, <code>mud_time</code>, <code>mud_weather</code>, <code>mud_last_img</code>, <code>mud_images_enabled</code></li>
+<li>Per-cell deltas (<code>cell:&lt;loc&gt;</code>): <code>events</code>, <code>npcs</code> (status/notes), <code>objects</code> (description overrides), and <code>flags</code></li>
+</ul>
+</li>
+</ul>
+<p>At <strong>Pre-Driver</strong>, the engine reads the current cell from the linked Lorebook, merges any <code>cell:&lt;loc&gt;</code> delta, generates a deterministic <strong>ASCII mini-map</strong> (<code>[@]</code> = you, <code>[.]</code> = connected room), and injects <code>[WORLD STATE]</code> into the scenario. Dead or departed NPCs are moved into <code>[NO LONGER HERE (DO NOT REVIVE)]</code> so the model never hallucinates them back.</p>
+<h2>Setup</h2>
+<ol>
+<li><strong>Import the Base Lorebook (Inactive)</strong>
+<ul>
+<li>In GitInTheVan, go to <strong>Lorebooks → Import JSON</strong> and import <code>lorebooks/MUD_World_Example.json</code>.</li>
+<li>Keep it <strong>inactive</strong> (<code>is_active: false</code>). The cantrip reads it directly via <code>lorebook_reads</code>.</li>
+</ul>
+</li>
+<li><strong>Import &amp; Activate the Cantrip</strong>
+<ul>
+<li>Import <code>cantrips/MUD_World_Engine.json</code> (or install both from the Pack Browser).</li>
+<li>Verify <strong>Lorebook Reads</strong> includes <code>MUD World Example</code>.</li>
+<li>Verify <strong>Pre-Driver</strong>, <strong>Driver-Callable</strong>, and <strong>Post-Navigator</strong> hooks are enabled, and <strong>Response Tags</strong> lists <code>mud_move</code>, <code>mud_delta</code>, <code>mud_time</code>.</li>
+<li>Activate the cantrip.</li>
+</ul>
+</li>
+</ol>
+<h2>Features</h2>
+<ul>
+<li><strong>Swipe / Regenerate Safety</strong>: Uses <code>context.request.is_regenerate</code> to restore <code>mud_prev_loc</code> before re-running, preventing double-movement on swipes.</li>
+<li><strong>Driver-Callable Mid-Turn Tools</strong>: The LLM can call <code>&lt;call:mud_world_engine action="move" dir="E" /&gt;</code> or <code>&lt;call:mud_world_engine action="look" target="fountain" /&gt;</code> to resolve movement or inspection within the same turn.</li>
+<li><strong>Post-Navigator Response Tags</strong>: Hidden tags emitted by the model (<code>&lt;mud_move&gt;</code>, <code>&lt;mud_time&gt;</code>, <code>&lt;mud_delta&gt;</code>) are stripped before reaching the user and applied to <code>context.chat_data</code> on the same turn.</li>
+<li><strong>Optional Location Images</strong>: Set <code>mud_images_enabled</code> to <code>true</code> in <code>chat_data</code> and populate <code>images.day</code> / <code>images.night</code> (or <code>day_rain</code>, etc.) in your Lorebook cells. When the resolved URL changes, the engine prepends <code>![Location Name](url)</code> to the response.</li>
+</ul>
+<h2>Creating Custom Worlds</h2>
+<p>Use <a href="MUD_World_Generator_Prompt.md"><code>MUD_World_Generator_Prompt.md</code></a> to generate your own grid worlds and interior sub-grids with any LLM in GITV Lorebook import format. If you name your custom Lorebook something other than <code>MUD World Example</code>, update <code>BOOK_NAME</code> in the cantrip's code and its <code>lorebook_reads</code> list.</p>

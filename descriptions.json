@@ -334,6 +334,38 @@
         "sample"
       ],
       "min_gitv_version": "0.15.0"
+    },
+    {
+      "path": "cantrips/MUD_World_Engine.json",
+      "type": "cantrip",
+      "name": "MUD World Engine",
+      "description": "Standardized spatial MUD engine using a static Base Lorebook + sparse chat_data coordinate delta overlay. Includes deterministic ASCII mini-maps, swipe-safe movement, driver-callable move/look tools, response-tag state updates, and optional location images.",
+      "author": "GitInTheVan",
+      "version": "1.0.0",
+      "updated": "2026-11-20T00:00:00Z",
+      "tags": [
+        "mud",
+        "spatial",
+        "world",
+        "memory"
+      ],
+      "min_gitv_version": "0.42.1"
+    },
+    {
+      "path": "lorebooks/MUD_World_Example.json",
+      "type": "lorebook",
+      "name": "MUD World Example",
+      "description": "Compact 8-cell spatial world (6 overworld cells + 2 interior tavern sub-grid cells) for the MUD World Engine cantrip. Import inactive and link via lorebook_reads.",
+      "author": "GitInTheVan",
+      "version": "1.0.0",
+      "updated": "2026-11-20T00:00:00Z",
+      "tags": [
+        "mud",
+        "spatial",
+        "world",
+        "lorebook"
+      ],
+      "min_gitv_version": "0.42.1"
     }
   ]
 }
